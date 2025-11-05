@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>研究所數據分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00f2fe;
+            --secondary: #4facfe;
+            --accent: #667eea;
+            --dark: #0f172a;
+            --darker: #0a0f1c;
+            --light: #1e293b;
+            --text: #e2e8f0;
+            --text-secondary: #94a3b8;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            color: var(--text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 科技感背景效果 */
+        .tech-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(0, 242, 254, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image:
+                linear-gradient(rgba(79, 172, 254, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(79, 172, 254, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        /* 導航欄 */
+        .navbar-tech {
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(79, 172, 254, 0.2);
+            padding: 1rem 0;
+        }
+
+        .nav-glow {
+            position: relative;
+        }
+
+        .nav-glow::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+
+        .nav-glow.active::after,
+        .nav-glow:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* 卡片設計 */
+        .tech-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 16px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), transparent);
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow:
+                0 10px 30px rgba(0, 242, 254, 0.2),
+                0 0 0 1px rgba(0, 242, 254, 0.1);
+        }
+
+        .card-glow {
+            position: relative;
+        }
+
+        .card-glow::after {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+            border-radius: 18px;
+            z-index: -1;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .card-glow:hover::after {
+            opacity: 0.3;
+        }
+
+        /* 按鈕設計 */
+        .btn-tech {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            border-radius: 12px;
+            color: var(--dark);
+            font-weight: 600;
+            padding: 12px 24px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-tech::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .btn-tech:hover::before {
+            left: 100%;
+        }
+
+        .btn-tech:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 242, 254, 0.4);
+        }
+
+        /* 數據卡片 */
+        .stats-card {
+            background: linear-gradient(135deg, rgba(79, 172, 254, 0.1), rgba(102, 126, 234, 0.1));
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 16px;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+        }
+
+        .stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 242, 254, 0.2);
+        }
+
+        .stats-number {
+            font-size: 3rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        /* 圖表容器 */
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-bottom: 2rem;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(79, 172, 254, 0.2);
+        }
+
+        /* 文字雲容器 */
+        .wordcloud-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 12px;
+            padding: 1rem;
+            /* 減少內邊距 */
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            position: relative;
+            overflow: hidden;
+            /* 隱藏溢出 */
+        }
+
+        /* 文字雲畫布 */
+        #wordCloud {
+            width: 100% !important;
+            height: 100% !important;
+            display: block;
+        }
+
+        /* 文字雲包裝器 */
+        .wordcloud-wrapper {
+            position: relative;
+            width: 100% !important;
+            /* 確保寬度100% */
+            height: 100% !important;
+            /* 確保高度100% */
+            overflow: hidden;
+        }
+
+        /* 排名項目 */
+        .ranking-item {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(79, 172, 254, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .ranking-item:hover {
+            border-color: var(--primary);
+            transform: translateX(5px);
+        }
+
+        .ranking-number {
+            font-size: 1.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-right: 1rem;
+        }
+
+        /* 標籤設計 */
+        .tech-tag {
+            background: rgba(79, 172, 254, 0.1);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tech-tag:hover {
+            background: rgba(79, 172, 254, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* 搜尋框 */
+        .search-tech {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(79, 172, 254, 0.3);
+            border-radius: 12px;
+            color: var(--text);
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-tech:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(0, 242, 254, 0.1);
+        }
+
+        /* 動畫效果 */
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes glow {
+
+            0%,
+            100% {
+                opacity: 0.5;
+            }
+
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .glowing {
+            animation: glow 2s ease-in-out infinite;
+        }
+
+        /* 響應式設計 */
+        @media (max-width: 768px) {
+            .stats-number {
+                font-size: 2rem;
+            }
+
+            .chart-container {
+                height: 250px;
+            }
+        }
+
+        /* 自定義滾動條 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--dark);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(var(--secondary), var(--primary));
+        }
+
+        /* 返回按鈕 */
+        .back-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        /* 返回首頁按鈕 */
+        .home-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 600;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            border: 1px solid rgba(79, 172, 254, 0.3);
+        }
+
+        .home-btn:hover {
+            background: rgba(79, 172, 254, 0.1);
+            -webkit-text-fill-color: var(--primary);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        /* 頁面標題 */
+        .page-title {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        /* 載入指示器 */
+        .loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+            flex-direction: column;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(79, 172, 254, 0.3);
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* 文字雲容器改進 */
+        .wordcloud-wrapper {
+            position: relative;
+            width: 50%;
+            height: 50%;
+            overflow: hidden;
+        }
+
+        /* 數據標籤 */
+        .data-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-top: 0.5rem;
+        }
+
+        /* 詳細統計 */
+        .detail-stats {
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(79, 172, 254, 0.1);
+        }
+
+        .stat-item:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tech-bg"></div>
+    <div class="grid-overlay"></div>
+
+    <nav class="navbar navbar-expand-lg navbar-tech">
+        <div class="container">
+            <a href="index.html" class="home-btn"><i class="fas fa-arrow-left"></i> 返回首頁</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <i class="fas fa-bars text-white"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav"></div>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <!-- 頁面標題 -->
+        <h1 class="page-title">熱門研究所分析</h1>
+
+        <!-- 數據分析頁面 -->
+        <div id="analyticsPage">
+            <!-- 統計卡片 -->
+            <div class="row mb-5 floating">
+                <div class="col-md-4 mb-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalPosts"></div>
+                        <div class="text-var(--text-secondary)">總討論文章</div>
+                        <i class="fas fa-file-alt mt-3" style="color: var(--primary); font-size: 2rem;"></i>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalSchools"></div>
+                        <div class="text-var(--text-secondary)">熱門學校</div>
+                        <i class="fas fa-university mt-3" style="color: var(--secondary); font-size: 2rem;"></i>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="stats-card">
+                        <div class="stats-number" id="totalDepartments"></div>
+                        <div class="text-var(--text-secondary)">熱門科系</div>
+                        <i class="fas fa-graduation-cap mt-3" style="color: var(--accent); font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 主要內容區域 -->
+            <div class="row">
+                <!-- 左側內容 -->
+                <div class="col-lg-8">
+                    <!-- 學校熱度圖表 -->
+                    <div class="tech-card card-glow p-4 mb-4">
+                        <h4 class="mb-4"><i class="fas fa-university me-2"></i>學校討論熱度排行</h4>
+                        <div class="chart-container">
+                            <canvas id="schoolBarChart"></canvas>
+                        </div>
+
+                    </div>
+
+                    <!-- 科系分析 -->
+                    <div class="tech-card p-4 mb-4">
+                        <h4 class="mb-4"><i class="fas fa-chart-line me-2"></i>科系討論熱度分析</h4>
+                        <div class="chart-container">
+                            <canvas id="departmentChart"></canvas>
+                        </div>
+                        <!-- 文字雲區域 -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="tech-card card-glow p-4">
+                                    <h4 class="mb-4 text-center"><i class="fas fa-cloud me-2"></i>話題文字雲</h4>
+                                    <div class="wordcloud-container">
+                                        <div class="wordcloud-wrapper">
+                                            <canvas id="wordCloud"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="text-center mt-3">
+                                        <button class="btn-tech btn-sm" id="refreshWordCloud">
+                                            <i class="fas fa-sync-alt me-2"></i>重新生成文字雲
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 右側邊欄 -->
+                <div class="col-lg-4">
+                    <!-- 即時排名 -->
+                    <div class="tech-card p-4 mb-4">
+                        <h5 class="mb-3"><i class="fas fa-trophy me-2"></i>學校熱門排名</h5>
+                        <div id="liveRanking">
+                            <!-- 即時排名內容 -->
+                        </div>
+                    </div>
+
+                    <!-- 熱門標籤 -->
+                    <div class="tech-card p-4">
+                        <h5 class="mb-3"><i class="fas fa-tags me-2"></i>熱門話題</h5>
+                        <div id="hotTags" class="d-flex flex-wrap">
+                            <!-- 熱門標籤 -->
+                        </div>
+                    </div>
+
+                    <!-- 話題分析 -->
+                    <div class="tech-card p-4 mt-4">
+                        <h5 class="mb-3"><i class="fas fa-chart-pie me-2"></i>話題分布</h5>
+                        <div class="chart-container">
+                            <canvas id="topicChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+    <!-- 返回首頁按鈕 -->
+    <div class="back-button">
+        <button class="btn btn-tech btn-lg rounded-circle p-3 floating" onclick="window.location.href='index.html'">
+            <i class="fas fa-home"></i>
+        </button>
+    </div>
+
+    <!-- 引入外部數據文件 -->
+    <script src="./js/grad_trends.js"></script>
+
+    <script>
+        // 全局變數存儲數據
+        let gradTrendsData = null;
+
+        // 初始化科技感圖表
+        function initializeTechCharts() {
+            // 檢查數據是否已加載
+            if (typeof gradTrends !== 'undefined') {
+                gradTrendsData = gradTrends;
+                createAllCharts();
+            } else {
+                console.error('grad_trends.js 數據未正確加載');
+                // 顯示錯誤訊息
+                document.querySelectorAll('.loading').forEach(el => {
+                    el.innerHTML = '<p style="color: #ff4081;">數據載入失敗，請檢查數據文件</p>';
+                });
+            }
+        }
+
+        // 創建所有圖表
+        function createAllCharts() {
+            updateStatsCards();
+            createSchoolBarChart();
+            createDepartmentChart();
+            createTopicChart();
+            createWordCloud();
+            initializeLiveRanking();
+            initializeHotTags();
+            createSchoolStats();
+            createDepartmentStats();
+        }
+
+        // 更新統計卡片
+        function updateStatsCards() {
+            if (gradTrendsData && gradTrendsData.total_articles) {
+                document.getElementById('totalPosts').textContent = gradTrendsData.total_articles.toLocaleString();
+                document.getElementById('totalSchools').textContent = gradTrendsData.schools.length;
+                document.getElementById('totalDepartments').textContent = gradTrendsData.departments.length;
+            }
+        }
+
+        // 學校條形圖
+        function createSchoolBarChart() {
+            const ctx = document.getElementById('schoolBarChart').getContext('2d');
+
+            // 從 gradTrendsData 中提取數據
+            const schools = gradTrendsData.schools;
+            const labels = schools.map(school => school.name);
+            const data = schools.map(school => school.count);
+
+            // 計算最大值的百分比
+            const maxCount = Math.max(...data);
+            const percentages = data.map(count => Math.round((count / maxCount) * 100));
+
+            // 科技感漸變
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(0, 242, 254, 0.8)');
+            gradient.addColorStop(1, 'rgba(79, 172, 254, 0.8)');
+
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '討論次數',
+                        data: data,
+                        backgroundColor: gradient,
+                        borderColor: '#00f2fe',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    const index = context.dataIndex;
+                                    const school = schools[index];
+                                    const articleCount = school.article_count || school.count;
+                                    return `討論次數: ${context.parsed.y} (${articleCount}篇文章)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 科系圖表
+        function createDepartmentChart() {
+            const ctx = document.getElementById('departmentChart').getContext('2d');
+
+            // 從 gradTrendsData 中提取數據
+            const departments = gradTrendsData.departments;
+            const labels = departments.map(dept => dept.name);
+            const data = departments.map(dept => dept.count);
+
+            const gradient1 = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient1.addColorStop(0, 'rgba(0, 242, 254, 0.6)');
+            gradient1.addColorStop(1, 'rgba(0, 242, 254, 0.1)');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '科系討論熱度',
+                        data: data,
+                        borderColor: '#00f2fe',
+                        backgroundColor: gradient1,
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)'
+                            },
+                            ticks: {
+                                color: '#94a3b8'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: '#e2e8f0'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 話題圖表
+        function createTopicChart() {
+            const ctx = document.getElementById('topicChart').getContext('2d');
+
+            // 從 gradTrendsData 中提取數據
+            const topics = gradTrendsData.topics;
+            const labels = topics.map(topic => topic.name);
+            const data = topics.map(topic => topic.count);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(0, 242, 254, 0.8)',
+                            'rgba(79, 172, 254, 0.8)',
+                            'rgba(102, 126, 234, 0.8)',
+                            'rgba(199, 0, 255, 0.8)',
+                            'rgba(255, 64, 129, 0.8)',
+                            'rgba(0, 255, 136, 0.8)',
+                            'rgba(255, 221, 0, 0.8)',
+                            'rgba(255, 119, 0, 0.8)'
+                        ],
+                        borderColor: [
+                            '#00f2fe',
+                            '#4facfe',
+                            '#667eea',
+                            '#c700ff',
+                            '#ff4081',
+                            '#00ff88',
+                            '#fff000',
+                            '#ff7700'
+                        ],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: '#e2e8f0',
+                                padding: 15,
+                                font: {
+                                    size: 10
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // 文字雲 - 修復版本
+        function createWordCloud() {
+            // 從 gradTrends 中提取話題數據
+            const topics = gradTrends.topics;
+
+            // 準備文字雲數據，格式為 [文字, 權重]
+            const wordCloudData = topics.map(topic => [topic.name, topic.count]);
+
+            // 確保canvas元素存在
+            const canvas = document.getElementById('wordCloud');
+            if (!canvas) {
+                console.error('找不到文字雲canvas元素');
+                return;
+            }
+
+            // 清除canvas內容
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 檢查WordCloud庫是否可用
+            if (typeof WordCloud === 'undefined') {
+                console.error('WordCloud庫未正確加載');
+                return;
+            }
+
+            // 創建文字雲
+            try {
+                WordCloud(canvas, {
+                    list: wordCloudData,
+                    gridSize: Math.round(16 * canvas.width / 1024),
+                    weightFactor: function (size) {
+                        return Math.pow(size, 1.5) * (canvas.width / 1024) * 5;
+                    },
+                    fontFamily: 'Segoe UI, system-ui, sans-serif',
+                    color: function () {
+                        const colors = ['#00f2fe', '#4facfe', '#667eea', '#c700ff', '#ff4081', '#00ff88', '#ffdd00', '#ff7700'];
+                        return colors[Math.floor(Math.random() * colors.length)];
+                    },
+                    rotateRatio: 0.8,
+                    rotationSteps: 2,
+                    backgroundColor: 'transparent',
+                    minSize: 1,
+                    drawOutOfBound: false,
+                    shrinkToFit: true,
+                    shape: 'circle',
+                    ellipticity: 0.8
+                });
+            } catch (error) {
+                console.error('生成文字雲時發生錯誤:', error);
+            }
+        }
+
+        // 初始化即時排名
+        function initializeLiveRanking() {
+            // 使用 gradTrends 中的學校數據
+            const rankingData = gradTrends.schools.slice(0, 5);
+
+            const container = document.getElementById('liveRanking');
+            container.innerHTML = rankingData.map((school, index) => {
+                const trendIcon = index < 2 ? '📈' : index > 3 ? '📉' : '➡️';
+                const medal = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'][index];
+                return `
+                <div class="ranking-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="ranking-number">${medal}</span>
+                        ${school.name}
+                    </div>
+                    <div class="text-end">
+                        <strong style="color:#00f2fe">${school.count}</strong> ${trendIcon}
+                        <div class="data-label">${school.article_count}篇文章</div>
+                    </div>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // 熱門標籤
+        function initializeHotTags() {
+            // 使用 gradTrends 中的話題數據
+            const tags = gradTrends.topics.map(topic => topic.name);
+            const container = document.getElementById('hotTags');
+            container.innerHTML = tags.map(tag => `<div class="tech-tag">#${tag}</div>`).join('');
+        }
+
+        // 創建學校詳細統計
+        function createSchoolStats() {
+            const container = document.getElementById('schoolStats');
+            const schools = gradTrends.schools;
+
+            container.innerHTML = schools.map(school => {
+                return `
+                <div class="stat-item">
+                    <span>${school.name}</span>
+                    <span>${school.count}次提及 (${school.article_count}篇文章)</span>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // 創建科系詳細統計
+        function createDepartmentStats() {
+            const container = document.getElementById('departmentStats');
+            const departments = gradTrends.departments;
+
+            container.innerHTML = departments.map(dept => {
+                return `
+                <div class="stat-item">
+                    <span>${dept.name}</span>
+                    <span>${dept.count}次提及 (${dept.article_count}篇文章)</span>
+                </div>
+            `;
+            }).join('');
+        }
+
+        // 確保WordCloud庫加載完成後再初始化
+        function checkWordCloudLoaded() {
+            if (typeof WordCloud !== 'undefined') {
+                initializeTechCharts();
+            } else {
+                setTimeout(checkWordCloudLoaded, 100);
+            }
+        }
+
+        // 頁面加載完成後初始化圖表
+        document.addEventListener('DOMContentLoaded', checkWordCloudLoaded);
+    </script>
+</body>
+
+</html>
