@@ -215,6 +215,38 @@
             box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), var(--glow);
         }
 
+        /* 漢堡選單 */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+            z-index: 101;
+        }
+
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background: var(--light);
+            border-radius: 3px;
+            transition: var(--transition);
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: translateY(9px) rotate(45deg);
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: translateY(-9px) rotate(-45deg);
+        }
+
         /* 主視覺區樣式 */
         .hero {
             text-align: center;
@@ -803,6 +835,28 @@
 
             .nav-links {
                 display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background: rgba(10, 15, 31, 0.95);
+                flex-direction: column;
+                padding: 20px;
+                border-top: 1px solid rgba(99, 102, 241, 0.2);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            }
+
+            .nav-links.active {
+                display: flex;
+            }
+
+            .nav-links a {
+                padding: 12px 0;
+                border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            }
+
+            .hamburger {
+                display: flex;
             }
 
             .hero {
@@ -836,6 +890,50 @@
             .column h4::after {
                 left: 50%;
                 transform: translateX(-50%);
+            }
+
+            .section-title {
+                font-size: 2.2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .stat-value {
+                font-size: 2.5rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .section-title {
+                font-size: 1.8rem;
+            }
+
+            .cards {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .footer {
+                padding: 40px 20px 30px;
+            }
+
+            .footer-right {
+                flex-direction: column;
+                gap: 30px;
             }
         }
 
@@ -891,11 +989,68 @@
                 transform: translateY(-4px);
             }
         }
+
+        /* 增強科技感 */
+        .tech-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .glow-effect {
+            position: relative;
+        }
+
+        .glow-effect::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
+        .glow-effect:hover::after {
+            opacity: 1;
+        }
+
+        .scan-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            animation: scan 3s linear infinite;
+            z-index: 2;
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0;
+            }
+            100% {
+                top: 100%;
+            }
+        }
     </style>
 </head>
 
 <body>
     <div id="particles-js"></div>
+    <div class="tech-grid"></div>
 
     <div class="navbar">
         <div class="navbar-left">
@@ -911,22 +1066,30 @@
                 <a href="考試.html"><i class="fas fa-book"></i> 考試</a>
             </div>
         </div>
-        <a href="chatbot.html" class="chatbot-btn" target="_blank">
-            <i class="fas fa-robot"></i> 聊天機器人
-        </a>
-
+        <div class="navbar-right">
+            <a href="chatbot.html" class="chatbot-btn" target="_blank">
+                <i class="fas fa-robot"></i> 聊天機器人
+            </a>
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
     </div>
 
     <div class="hero">
         <h1>探索<span>科技校園生活</span>的無限可能</h1>
         <p>連結、學習、成長 - 大學生活的新維度。獲取最新校園資訊、學習資源和生活技巧，讓你的大學時光更加精彩。</p>
 
+   
     </div>
 
     <div class="features">
         <h2 class="section-title">探索校園科技生活</h2>
         <div class="cards">
-            <div class="card card-3d">
+            <div class="card card-3d glow-effect">
+                <div class="scan-line"></div>
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-network-wired"></i>
@@ -936,7 +1099,8 @@
                 </div>
             </div>
 
-            <div class="card card-3d">
+            <div class="card card-3d glow-effect">
+                <div class="scan-line"></div>
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-users"></i>
@@ -946,7 +1110,8 @@
                 </div>
             </div>
 
-            <div class="card card-3d">
+            <div class="card card-3d glow-effect">
+                <div class="scan-line"></div>
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-chart-line"></i>
@@ -956,7 +1121,8 @@
                 </div>
             </div>
 
-            <div class="card card-3d">
+            <div class="card card-3d glow-effect">
+                <div class="scan-line"></div>
                 <div class="card-content">
                     <div class="card-icon">
                         <i class="fas fa-lightbulb"></i>
@@ -968,6 +1134,26 @@
         </div>
     </div>
 
+    <div class="stats">
+        <div class="stats-grid">
+            <div class="stat-item">
+                <div class="stat-value">50K+</div>
+                <div class="stat-label">活躍用戶</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">200+</div>
+                <div class="stat-label">合作院校</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">98%</div>
+                <div class="stat-label">用戶滿意度</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">5K+</div>
+                <div class="stat-label">學習資源</div>
+            </div>
+        </div>
+    </div>
 
     <div class="footer">
         <div class="footer-content">
@@ -977,7 +1163,12 @@
                     <div class="logo-text">CampusTech</div>
                 </div>
                 <p>連結校園與科技，打造新一代大學生活體驗。我們致力於提供最新科技資訊、學習資源與校園生活指南，幫助學生充分發揮潛能。</p>
-             
+                <div class="socials">
+                    <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
+                    <div class="social-icon"><i class="fab fa-twitter"></i></div>
+                    <div class="social-icon"><i class="fab fa-instagram"></i></div>
+                    <div class="social-icon"><i class="fab fa-linkedin-in"></i></div>
+                </div>
             </div>
 
             <div class="footer-right">
@@ -1017,7 +1208,7 @@
         </div>
 
         <div class="copyright">
-            &copy; CampusTech 大學生活平台。
+            &copy; 2023 CampusTech 大學生活平台。保留所有權利。
         </div>
     </div>
 
@@ -1027,7 +1218,7 @@
         // 初始化粒子背景
         particlesJS('particles-js', {
             particles: {
-                number: { value: 80, density: { enable: true, value_area: 800 } },
+                number: { value: 100, density: { enable: true, value_area: 800 } },
                 color: { value: "#8b5cf6" },
                 shape: { type: "circle", stroke: { width: 0, color: "#000000" } },
                 opacity: { value: 0.5, random: true },
@@ -1095,16 +1286,27 @@
                 }
             });
 
+            // 漢堡選單功能
+            const hamburger = document.querySelector('.hamburger');
+            const navLinks = document.querySelector('.nav-links');
+            
+            hamburger.addEventListener('click', function() {
+                this.classList.toggle('active');
+                navLinks.classList.toggle('active');
+            });
+
             // 註冊按鈕動畫
             const registerBtn = document.querySelector('.register');
-            registerBtn.addEventListener('mousemove', (e) => {
-                const rect = registerBtn.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
+            if(registerBtn) {
+                registerBtn.addEventListener('mousemove', (e) => {
+                    const rect = registerBtn.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
 
-                registerBtn.style.setProperty('--x', `${x}px`);
-                registerBtn.style.setProperty('--y', `${y}px`);
-            });
+                    registerBtn.style.setProperty('--x', `${x}px`);
+                    registerBtn.style.setProperty('--y', `${y}px`);
+                });
+            }
 
             // 新增資料統計動畫
             const statValues = document.querySelectorAll('.stat-value');
