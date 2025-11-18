@@ -1,1222 +1,623 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>科技校園生活 | CampusTech</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --primary: #6366f1;
-            --primary-dark: #4f46e5;
-            --secondary: #0ea5e9;
-            --accent: #8b5cf6;
-            --accent-light: #a78bfa;
-            --dark: #0f172a;
-            --darker: #0a0f1f;
-            --light: #f8fafc;
-            --gray: #94a3b8;
-            --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
-            --accent-gradient: linear-gradient(135deg, var(--accent), var(--primary));
-            --card-bg: rgba(15, 23, 42, 0.6);
-            --glass: rgba(255, 255, 255, 0.05);
-            --transition: all 0.3s ease;
-            --glow: 0 0 15px rgba(99, 102, 241, 0.5);
+            /* 科技感配色方案 */
+            --bg-dark: #050505;
+            --bg-panel: rgba(20, 25, 40, 0.6);
+            --primary: #00f3ff; /* 霓虹青 */
+            --secondary: #bc13fe; /* 電光紫 */
+            --accent: #4d4dff; /* 深藍光 */
+            --text-main: #e0e0e0;
+            --text-muted: #94a3b8;
+            
+            /* 特效變數 */
+            --glass: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glow-primary: 0 0 20px rgba(0, 243, 255, 0.4);
+            --glow-secondary: 0 0 20px rgba(188, 19, 254, 0.4);
+            --transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', system-ui, -apple-system, 'SF Pro Display', sans-serif;
         }
 
         body {
-            background: var(--darker);
-            color: var(--light);
-            background-image:
-                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
-                radial-gradient(circle at 90% 80%, rgba(14, 165, 233, 0.15) 0%, transparent 20%),
-                radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 30%);
-            background-attachment: fixed;
-            line-height: 1.6;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            /* 字體設定核心：英文用 Orbitron，中文優先使用標楷體 */
+            font-family: 'Orbitron', 'BiauKai', 'DFKai-SB', '標楷體', 'KaiTi', serif;
             overflow-x: hidden;
             min-height: 100vh;
+            position: relative;
+            font-weight: 500; /* 標楷體加一點粗度在黑底上比較清楚 */
         }
 
-        /* 粒子背景效果 */
+        /* === 背景特效：Cyberpunk 網格 === */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            transform: perspective(500px) rotateX(60deg);
+            transform-origin: center top;
+            opacity: 0.3;
+            z-index: -2;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes gridMove {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 500px; }
+        }
+
+        /* 粒子背景層 */
         #particles-js {
             position: fixed;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
+            width: 100%; height: 100%;
+            top: 0; left: 0;
             z-index: -1;
         }
 
-        /* 導覽列樣式 */
+        /* === 導覽列 === */
         .navbar {
-            background: rgba(10, 15, 31, 0.85);
-            padding: 16px 40px;
+            background: rgba(5, 5, 5, 0.8);
+            padding: 20px 50px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
             position: sticky;
             top: 0;
-            z-index: 100;
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(99, 102, 241, 0.2);
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            transition: var(--transition);
+            z-index: 1000;
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid var(--glass-border);
+            transition: 0.3s;
         }
 
         .navbar.scrolled {
-            padding: 10px 40px;
-            background: rgba(10, 15, 31, 0.95);
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
-        }
-
-        .navbar-left {
-            display: flex;
-            align-items: center;
-            gap: 30px;
+            padding: 15px 50px;
+            background: rgba(5, 5, 5, 0.95);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
-            position: relative;
-            transition: var(--transition);
+            gap: 12px;
+            font-weight: 900;
+            font-size: 24px;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            cursor: pointer;
         }
 
-        .logo-icon {
-            width: 36px;
-            height: 36px;
-            background: var(--accent-gradient);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            font-size: 18px;
-            box-shadow: var(--glow);
-            transition: var(--transition);
-        }
-
-        .logo:hover .logo-icon {
-            transform: rotate(15deg) scale(1.1);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.7);
-        }
-
-        .logo-text {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
-        }
-
-        .logo::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: var(--accent-gradient);
-            border-radius: 2px;
-            transform: scaleX(0);
-            transition: var(--transition);
-        }
-
-        .logo:hover::after {
-            transform: scaleX(1);
-        }
+        .logo span { color: var(--primary); }
 
         .nav-links {
             display: flex;
-            gap: 24px;
-            font-size: 16px;
+            gap: 40px;
         }
 
         .nav-links a {
             text-decoration: none;
-            color: var(--gray);
-            font-weight: 500;
-            padding: 8px 0;
+            color: var(--text-muted);
+            font-size: 18px; /* 標楷體稍微放大一點較易閱讀 */
+            font-weight: 600;
             position: relative;
-            transition: var(--transition);
+            transition: 0.3s;
             display: flex;
             align-items: center;
             gap: 8px;
+            letter-spacing: 1px;
         }
 
-        .nav-links a:hover {
-            color: var(--light);
+        .nav-links a:hover, .nav-links a.active {
+            color: var(--primary);
+            text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
         }
 
         .nav-links a::after {
             content: '';
             position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 0;
-            height: 2px;
-            background: var(--accent-gradient);
-            transition: var(--transition);
+            bottom: -5px; left: 0;
+            width: 0; height: 2px;
+            background: var(--primary);
+            transition: 0.3s;
+            box-shadow: 0 0 10px var(--primary);
         }
 
-        .nav-links a:hover::after {
-            width: 100%;
-        }
+        .nav-links a:hover::after { width: 100%; }
 
-        .navbar-right {
-            display: flex;
-            gap: 12px;
-        }
-
-        .navbar-right button {
-            padding: 10px 22px;
-            border-radius: 8px;
-            border: none;
-            cursor: pointer;
-            font-size: 15px;
-            font-weight: 600;
-            transition: var(--transition);
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .sign-in {
+        /* 聊天機器人按鈕 */
+        .chatbot-btn {
+            padding: 10px 24px;
             background: transparent;
-            color: var(--gray);
-            border: 1px solid rgba(148, 163, 184, 0.3);
-        }
-
-        .sign-in:hover {
-            background: rgba(148, 163, 184, 0.1);
-            color: var(--light);
-            box-shadow: var(--glow);
-        }
-
-        .register {
-            background: var(--accent-gradient);
-            color: white;
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-        }
-
-        .register:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), var(--glow);
-        }
-
-        /* 漢堡選單 */
-        .hamburger {
-            display: none;
-            flex-direction: column;
-            justify-content: space-between;
-            width: 30px;
-            height: 21px;
-            cursor: pointer;
-            z-index: 101;
-        }
-
-        .hamburger span {
-            display: block;
-            height: 3px;
-            width: 100%;
-            background: var(--light);
-            border-radius: 3px;
-            transition: var(--transition);
-        }
-
-        .hamburger.active span:nth-child(1) {
-            transform: translateY(9px) rotate(45deg);
-        }
-
-        .hamburger.active span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .hamburger.active span:nth-child(3) {
-            transform: translateY(-9px) rotate(-45deg);
-        }
-
-        /* 主視覺區樣式 */
-        .hero {
-            text-align: center;
-            padding: 140px 20px 100px;
-            max-width: 900px;
-            margin: 0 auto;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            border-radius: 50px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            transition: 0.3s;
+            overflow: hidden;
             position: relative;
-            z-index: 10;
+            letter-spacing: 1px;
         }
 
-        .hero::before {
+        .chatbot-btn::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 300px;
-            height: 300px;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
             background: var(--primary);
-            filter: blur(100px);
-            opacity: 0.3;
+            transition: 0.4s;
             z-index: -1;
-            border-radius: 50%;
-            animation: pulse 8s infinite;
         }
 
-        @keyframes pulse {
-            0% {
-                transform: translate(-50%, -50%) scale(0.9);
-                opacity: 0.3;
-            }
-
-            50% {
-                transform: translate(-50%, -50%) scale(1.1);
-                opacity: 0.4;
-            }
-
-            100% {
-                transform: translate(-50%, -50%) scale(0.9);
-                opacity: 0.3;
-            }
+        .chatbot-btn:hover {
+            color: #000;
+            box-shadow: var(--glow-primary);
         }
 
-        .hero h1 {
-            font-size: 3.8rem;
-            font-weight: 800;
-            margin-bottom: 16px;
-            background: linear-gradient(90deg, var(--light), var(--accent-light));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1.2;
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-            animation: fadeInUp 1s ease;
-        }
+        .chatbot-btn:hover::before { left: 0; }
 
-        .hero h1 span {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
+        .hamburger { display: none; cursor: pointer; }
+
+        /* === 主視覺 Hero Section === */
+        .hero {
+            min-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 100px 20px;
             position: relative;
+        }
+
+        /* 故障文字特效 Glitch Effect */
+        .glitch-title {
+            font-size: 4.5rem;
+            font-weight: 900;
+            color: #fff;
+            position: relative;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px var(--secondary), -3px -3px var(--primary);
+            letter-spacing: 5px;
+        }
+
+        .glitch-title span {
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: none;
         }
 
         .hero p {
-            font-size: 1.25rem;
-            color: var(--gray);
-            max-width: 700px;
-            margin: 0 auto 40px;
-            line-height: 1.7;
-            animation: fadeInUp 1s ease 0.2s forwards;
+            font-size: 1.5rem; /* 標楷體需要大一點 */
+            color: var(--text-muted);
+            max-width: 750px;
+            line-height: 1.8;
+            margin-bottom: 50px;
+            animation: fadeIn 1s ease 0.5s forwards;
             opacity: 0;
+            letter-spacing: 2px;
         }
 
-        .email-form {
-            margin-top: 40px;
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            max-width: 600px;
-            margin: 40px auto 0;
-            animation: fadeInUp 1s ease 0.4s forwards;
-            opacity: 0;
-        }
-
-        .email-form input {
-            padding: 14px 20px;
-            flex: 1;
-            border: none;
-            border-radius: 10px;
-            background: rgba(15, 23, 42, 0.7);
-            border: 1px solid rgba(99, 102, 241, 0.2);
-            color: var(--light);
-            font-size: 16px;
-            backdrop-filter: blur(5px);
-            transition: var(--transition);
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .email-form input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3), inset 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .email-form input::placeholder {
-            color: var(--gray);
-        }
-
-        .email-form button {
-            padding: 14px 30px;
-            background: var(--accent-gradient);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            transition: var(--transition);
-            box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .email-form button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: 0.5s;
-            z-index: -1;
-        }
-
-        .email-form button:hover::before {
-            left: 100%;
-        }
-
-        .email-form button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6), var(--glow);
-        }
-
-        /* 特色卡片區 */
+        /* === 卡片區域 === */
         .features {
             max-width: 1200px;
-            margin: 80px auto;
+            margin: 0 auto 100px;
             padding: 0 20px;
-            position: relative;
-            z-index: 10;
         }
 
-        .section-title {
+        .section-header {
             text-align: center;
-            font-size: 2.8rem;
             margin-bottom: 60px;
-            font-weight: 800;
-            background: linear-gradient(90deg, var(--light), var(--accent-light));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+
+        .section-header h2 {
+            font-size: 2.8rem;
+            color: #fff;
+            margin-bottom: 10px;
+            display: inline-block;
             position: relative;
-            animation: fadeInUp 0.8s ease;
+            letter-spacing: 3px;
         }
 
-        .section-title::after {
+        .section-header h2::after {
             content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
+            display: block;
+            width: 50%;
             height: 4px;
-            background: var(--accent-gradient);
-            border-radius: 2px;
-            animation: widthGrow 1s ease;
+            background: var(--secondary);
+            margin: 10px auto 0;
+            box-shadow: var(--glow-secondary);
         }
 
-        @keyframes widthGrow {
-            from {
-                width: 0;
-            }
-
-            to {
-                width: 80px;
-            }
-        }
-
-        .cards {
+        .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
             gap: 30px;
         }
 
-        .card {
-            background: var(--card-bg);
+        /* 全息卡片樣式 */
+        .tech-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 30px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            transition: var(--transition);
+            padding: 35px;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            opacity: 0;
-            transform: translateY(30px);
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            transform-style: preserve-3d;
         }
 
-        .card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .card::before {
+        .tech-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--accent-gradient);
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent 40%);
+            opacity: 0;
+            transition: 0.4s;
+            pointer-events: none;
         }
 
-        .card:hover {
+        .tech-card:hover {
             transform: translateY(-10px);
-            border-color: rgba(139, 92, 246, 0.3);
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), var(--glow);
+            border-color: var(--primary);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 243, 255, 0.1);
         }
+
+        .tech-card:hover::before { opacity: 1; }
 
         .card-icon {
-            width: 60px;
-            height: 60px;
-            background: rgba(79, 70, 229, 0.1);
+            width: 60px; height: 60px;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 28px;
+            color: var(--primary);
             margin-bottom: 20px;
-            font-size: 24px;
-            color: var(--accent);
-            box-shadow: 0 0 15px rgba(139, 92, 246, 0.2);
-            transition: var(--transition);
+            transition: 0.4s;
+            border: 1px solid rgba(0, 243, 255, 0.1);
         }
 
-        .card:hover .card-icon {
-            transform: translateY(-5px) rotate(5deg);
-            background: rgba(139, 92, 246, 0.2);
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.4);
-        }
-
-        .card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 15px;
-            color: var(--light);
-            background: linear-gradient(90deg, var(--light), var(--accent));
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            transition: var(--transition);
-        }
-
-        .card:hover h3 {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-        }
-
-        .card p {
-            color: var(--gray);
-            font-size: 1rem;
-            line-height: 1.7;
-            transition: var(--transition);
-        }
-
-        .card:hover p {
-            color: var(--light);
-        }
-
-        /* 資料展示區 */
-        .stats {
-            max-width: 1200px;
-            margin: 100px auto;
-            padding: 40px;
-            background: rgba(15, 23, 42, 0.4);
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(99, 102, 241, 0.1);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-            position: relative;
-            z-index: 10;
-            overflow: hidden;
-        }
-
-        .stats::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 70%);
-            z-index: -1;
-            animation: rotate 20s linear infinite;
-        }
-
-        @keyframes rotate {
-            from {
-                transform: rotate(0deg);
-            }
-
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 30px;
-            text-align: center;
-        }
-
-        .stat-item {
-            padding: 20px;
-            transition: var(--transition);
-        }
-
-        .stat-item:hover {
-            transform: translateY(-5px);
-        }
-
-        .stat-value {
-            font-size: 3.5rem;
-            font-weight: 800;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
-            text-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
-        }
-
-        .stat-label {
-            color: var(--gray);
-            font-size: 1.1rem;
-            transition: var(--transition);
-        }
-
-        .stat-item:hover .stat-label {
-            color: var(--light);
-        }
-
-        /* 頁尾樣式 */
-        .footer {
-            background: rgba(10, 15, 31, 0.9);
-            padding: 60px 40px 40px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            gap: 60px;
-            border-top: 1px solid rgba(99, 102, 241, 0.1);
-            position: relative;
-            overflow: hidden;
-            margin-top: 100px;
-            z-index: 10;
-        }
-
-        .footer::before {
-            content: '';
-            position: absolute;
-            bottom: -100px;
-            right: -100px;
-            width: 300px;
-            height: 300px;
-            background: var(--secondary);
-            filter: blur(100px);
-            opacity: 0.2;
-            z-index: 0;
-            border-radius: 50%;
-            animation: moveRight 15s infinite alternate;
-        }
-
-        .footer::after {
-            content: '';
-            position: absolute;
-            top: -100px;
-            left: -100px;
-            width: 300px;
-            height: 300px;
+        .tech-card:hover .card-icon {
             background: var(--primary);
-            filter: blur(100px);
-            opacity: 0.2;
-            z-index: 0;
-            border-radius: 50%;
-            animation: moveLeft 15s infinite alternate;
+            color: #000;
+            box-shadow: var(--glow-primary);
+            transform: rotateY(360deg);
         }
 
-        @keyframes moveRight {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(50px, -50px);
-            }
+        .tech-card h3 {
+            font-size: 1.8rem; /* 標楷體標題加大 */
+            margin-bottom: 15px;
+            color: #fff;
+            letter-spacing: 1px;
         }
 
-        @keyframes moveLeft {
-            0% {
-                transform: translate(0, 0);
-            }
-
-            100% {
-                transform: translate(-50px, 50px);
-            }
-        }
-
-        .footer-content {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 80px;
-            max-width: 1200px;
-            width: 100%;
-            z-index: 1;
-        }
-
-        .footer-left {
-            max-width: 400px;
-            text-align: left;
-        }
-
-        .footer-left .logo {
-            margin-bottom: 20px;
-        }
-
-        .footer-left p {
-            color: var(--gray);
+        .tech-card p {
+            color: var(--text-muted);
+            line-height: 1.6;
+            flex-grow: 1;
             margin-bottom: 25px;
             font-size: 1.1rem;
-            line-height: 1.7;
+            letter-spacing: 1px;
         }
 
-        .socials {
-            display: flex;
-            gap: 20px;
-        }
-
-        .social-icon {
-            width: 42px;
-            height: 42px;
-            border-radius: 10px;
-            background: rgba(148, 163, 184, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            color: var(--light);
-            transition: var(--transition);
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-        }
-
-        .social-icon:hover {
-            background: var(--accent-gradient);
-            transform: translateY(-3px);
-            box-shadow: var(--glow);
-        }
-
-        .footer-right {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 60px;
-            justify-content: center;
-        }
-
-        .column {
-            text-align: left;
-        }
-
-        .column h4 {
-            font-size: 18px;
-            margin-bottom: 20px;
-            color: var(--light);
-            font-weight: 600;
-            position: relative;
-            display: inline-block;
-        }
-
-        .column h4::after {
-            content: '';
-            position: absolute;
-            bottom: -5px;
-            left: 0;
-            width: 40px;
-            height: 3px;
-            background: var(--accent-gradient);
-            border-radius: 2px;
-            transition: var(--transition);
-        }
-
-        .column:hover h4::after {
-            width: 100%;
-        }
-
-        .column ul {
-            list-style: none;
-            font-size: 16px;
-            line-height: 1.8;
-            padding: 0;
-        }
-
-        .column ul li {
-            margin-bottom: 10px;
-        }
-
-        .column ul li a {
-            color: var(--gray);
+        .card-link {
+            color: var(--secondary);
             text-decoration: none;
-            transition: var(--transition);
-            display: inline-block;
-            position: relative;
-        }
-
-        .column ul li a::before {
-            content: '→';
-            position: absolute;
-            left: -20px;
-            opacity: 0;
-            transition: var(--transition);
-        }
-
-        .column ul li a:hover {
-            color: var(--light);
-            transform: translateX(5px);
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .column ul li a:hover::before {
-            opacity: 1;
-            left: -15px;
-        }
-
-        .copyright {
-            padding-top: 30px;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: var(--gray);
-            font-size: 14px;
-            width: 100%;
-            z-index: 1;
-        }
-
-        /* 動畫效果 */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* 響應式設計 */
-        @media (max-width: 768px) {
-            .navbar {
-                padding: 16px 20px;
-                flex-direction: column;
-                gap: 15px;
-            }
-
-            .navbar-left {
-                width: 100%;
-                justify-content: space-between;
-            }
-
-            .nav-links {
-                display: none;
-                position: absolute;
-                top: 100%;
-                left: 0;
-                width: 100%;
-                background: rgba(10, 15, 31, 0.95);
-                flex-direction: column;
-                padding: 20px;
-                border-top: 1px solid rgba(99, 102, 241, 0.2);
-                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            }
-
-            .nav-links.active {
-                display: flex;
-            }
-
-            .nav-links a {
-                padding: 12px 0;
-                border-bottom: 1px solid rgba(99, 102, 241, 0.1);
-            }
-
-            .hamburger {
-                display: flex;
-            }
-
-            .hero {
-                padding: 100px 20px 60px;
-            }
-
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-
-            .email-form {
-                flex-direction: column;
-            }
-
-            .footer-content {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
-                gap: 50px;
-            }
-
-            .footer-left {
-                text-align: center;
-                align-items: center;
-            }
-
-            .column {
-                text-align: center;
-            }
-
-            .column h4::after {
-                left: 50%;
-                transform: translateX(-50%);
-            }
-
-            .section-title {
-                font-size: 2.2rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-            }
-
-            .stat-value {
-                font-size: 2.5rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .hero h1 {
-                font-size: 2rem;
-            }
-
-            .hero p {
-                font-size: 1.1rem;
-            }
-
-            .section-title {
-                font-size: 1.8rem;
-            }
-
-            .cards {
-                grid-template-columns: 1fr;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .footer {
-                padding: 40px 20px 30px;
-            }
-
-            .footer-right {
-                flex-direction: column;
-                gap: 30px;
-            }
-        }
-
-        /* 3D卡片效果 */
-        .card-3d {
-            transform-style: preserve-3d;
-            perspective: 1000px;
-        }
-
-        .card-3d .card-content {
-            transform: translateZ(20px);
-        }
-
-        .navbar-right {
-            display: flex;
-            align-items: center;
-        }
-
-        .chatbot-btn {
+            font-weight: 600;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #6a11cb, #2575fc);
-            color: white;
-            font-weight: 600;
-            font-size: 14px;
-            border-radius: 24px;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
+            transition: 0.3s;
+            width: fit-content;
+            font-size: 1.1rem;
         }
 
-        .chatbot-btn i {
-            animation: float 2s infinite ease-in-out;
+        .card-link:hover {
+            color: var(--primary);
+            gap: 15px;
         }
 
-        .chatbot-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, #2575fc, #6a11cb);
-        }
-
-        /* 小圖示浮動動畫 */
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0);
-            }
-
-            50% {
-                transform: translateY(-4px);
-            }
-        }
-
-        /* 增強科技感 */
-        .tech-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(99, 102, 241, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(99, 102, 241, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
-            opacity: 0.3;
-        }
-
-        .glow-effect {
+        /* === 頁尾 === */
+        .footer {
+            border-top: 1px solid var(--glass-border);
+            background: rgba(5, 5, 5, 0.9);
+            padding: 60px 20px 30px;
+            margin-top: 100px;
             position: relative;
         }
 
-        .glow-effect::after {
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 40px;
+        }
+
+        .footer-brand { flex: 1; min-width: 280px; }
+        .footer-brand p { color: var(--text-muted); margin-top: 20px; line-height: 1.6; letter-spacing: 1px; }
+        
+        .footer-links {
+            flex: 2;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 30px;
+        }
+
+        .footer-col h4 {
+            color: #fff;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            position: relative;
+            padding-bottom: 10px;
+            letter-spacing: 2px;
+        }
+
+        .footer-col h4::after {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.2) 0%, transparent 70%);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
+            bottom: 0; left: 0;
+            width: 30px; height: 2px;
+            background: var(--secondary);
         }
 
-        .glow-effect:hover::after {
-            opacity: 1;
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 12px; }
+        
+        .footer-col a {
+            color: var(--text-muted);
+            text-decoration: none;
+            transition: 0.3s;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
         }
 
-        .scan-line {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 2px;
-            background: linear-gradient(90deg, transparent, var(--accent), transparent);
-            animation: scan 3s linear infinite;
-            z-index: 2;
+        .footer-col a:hover {
+            color: var(--primary);
+            padding-left: 5px;
         }
 
-        @keyframes scan {
-            0% {
-                top: 0;
+        .copyright {
+            text-align: center;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            color: #555;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 992px) {
+            .navbar { padding: 20px; }
+            .glitch-title { font-size: 3rem; }
+        }
+
+        @media (max-width: 768px) {
+            .nav-links {
+                position: fixed;
+                top: 80px; left: 0; width: 100%;
+                background: rgba(5, 5, 5, 0.95);
+                flex-direction: column;
+                padding: 30px;
+                align-items: center;
+                clip-path: circle(0% at 100% 0);
+                transition: 0.5s ease-in-out;
             }
-            100% {
-                top: 100%;
+
+            .nav-links.active { clip-path: circle(150% at 100% 0); }
+            
+            .hamburger {
+                display: block;
+                width: 30px; height: 20px;
+                position: relative;
             }
+            
+            .hamburger span {
+                display: block;
+                width: 100%; height: 2px;
+                background: #fff;
+                position: absolute;
+                transition: 0.3s;
+            }
+            
+            .hamburger span:nth-child(1) { top: 0; }
+            .hamburger span:nth-child(2) { top: 9px; }
+            .hamburger span:nth-child(3) { top: 18px; }
+
+            .hamburger.active span:nth-child(1) { transform: rotate(45deg); top: 9px; }
+            .hamburger.active span:nth-child(2) { opacity: 0; }
+            .hamburger.active span:nth-child(3) { transform: rotate(-45deg); top: 9px; }
+
+            .hero h1 { font-size: 2.5rem; }
+            .footer-content { flex-direction: column; }
+            .footer-links { justify-content: flex-start; }
         }
     </style>
 </head>
 
 <body>
+    <div class="bg-grid"></div>
     <div id="particles-js"></div>
-    <div class="tech-grid"></div>
 
-    <div class="navbar">
-        <div class="navbar-left">
-            <div class="logo">
-                <div class="logo-icon">CT</div>
-                <div class="logo-text">CampusTech</div>
-            </div>
-            <div class="nav-links">
-                <a href="工作.html"><i class="fas fa-briefcase"></i> 工作</a>
-                <a href="研究所.html"><i class="fas fa-graduation-cap"></i> 研究所</a>
-                <a href="美食.html"><i class="fas fa-utensils"></i> 美食</a>
-                <a href="旅遊.html"><i class="fas fa-map-marked-alt"></i> 旅遊</a>
-                <a href="考試.html"><i class="fas fa-book"></i> 考試</a>
-            </div>
+    <nav class="navbar">
+        <div class="logo">Campus<span>Tech</span></div>
+        
+        <div class="nav-links">
+            <a href="工作.html" class="active"><i class="fas fa-briefcase"></i> 工作</a>
+            <a href="研究所.html"><i class="fas fa-graduation-cap"></i> 研究所</a>
+            <a href="美食.html"><i class="fas fa-utensils"></i> 美食</a>
+            <a href="旅遊.html"><i class="fas fa-map-marked-alt"></i> 旅遊</a>
+            <a href="考試.html"><i class="fas fa-book"></i> 考試</a>
         </div>
-        <div class="navbar-right">
+
+        <div style="display: flex; align-items: center; gap: 20px;">
             <a href="chatbot.html" class="chatbot-btn" target="_blank">
-                <i class="fas fa-robot"></i> 聊天機器人
+                <i class="fas fa-robot"></i> AI 助手
             </a>
             <div class="hamburger">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <div class="hero">
-        <h1>探索<span>科技校園生活</span>的無限可能</h1>
-        <p>連結、學習、成長 - 大學生活的新維度。獲取最新校園資訊、學習資源和生活技巧，讓你的大學時光更加精彩。</p>
+    <header class="hero">
+        <h1 class="glitch-title">探索 <span>科技校園生活</span><br>的無限可能</h1>
+        <p>連結、學習、進化。這是屬於新世代的大學生活維度。<br>
+           從職涯規劃到生活娛樂，我們運用數據與科技，為你提供最精準的校園指南。</p>
+    </header>
 
-   
-    </div>
+    <section class="features">
+        <div class="section-header">
+            <h2>校園科技生態系</h2>
+            <p style="color: var(--text-muted);">全方位的智慧生活解決方案</p>
+        </div>
 
-    <div class="features">
-        <h2 class="section-title">探索校園科技生活</h2>
-        <div class="cards">
-            <div class="card card-3d glow-effect">
-                <div class="scan-line"></div>
-                <div class="card-content">
-                    <div class="card-icon">
-                        <i class="fas fa-network-wired"></i>
-                    </div>
-                    <h3>數位學習</h3>
-                    <p>探索最新的數位學習工具，從雲端教學平台到AI學習助手，讓您的學習體驗更加高效與便捷。</p>
-                </div>
+        <div class="cards-grid">
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-briefcase"></i></div>
+                <h3>工作機會探索</h3>
+                <p>運用 AI 匹配適合的實習與兼職。我們提供完整的求職數據分析、履歷優化建議與職場技能圖譜。</p>
+                <a href="工作.html" class="card-link">開始探索 <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="card card-3d glow-effect">
-                <div class="scan-line"></div>
-                <div class="card-content">
-                    <div class="card-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <h3>社群網路</h3>
-                    <p>連結校園內的同學、社團與校友，建立您的專業人脈網路，開啟無限合作與交流機會。</p>
-                </div>
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-graduation-cap"></i></div>
+                <h3>研究所申請</h3>
+                <p>深度解析國內外學術趨勢。提供實驗室數據、教授研究方向熱點分析，以及獎學金預測模型。</p>
+                <a href="研究所.html" class="card-link">查看指南 <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="card card-3d glow-effect">
-                <div class="scan-line"></div>
-                <div class="card-content">
-                    <div class="card-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>職涯發展</h3>
-                    <p>獲取實習機會、職缺資訊與職涯規劃指導，為您的未來職場生涯做好充分準備。</p>
-                </div>
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-utensils"></i></div>
+                <h3>智慧美食地圖</h3>
+                <p>不只是餐廳列表。我們提供即時人流數據、CP值演算法分析，以及隱藏版校園美食導航。</p>
+                <a href="美食.html" class="card-link">搜尋美食 <i class="fas fa-arrow-right"></i></a>
             </div>
 
-            <div class="card card-3d glow-effect">
-                <div class="scan-line"></div>
-                <div class="card-content">
-                    <div class="card-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <h3>創意空間</h3>
-                    <p>激發您的創新思維，參與校內外競賽與專案，將您的創意點子轉化為實際成果。</p>
-                </div>
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <h3>旅遊行程規劃</h3>
+                <p>針對學生預算的最佳化演算法。自動規劃交通路徑、住宿比價，並推薦社群熱門打卡點。</p>
+                <a href="旅遊.html" class="card-link">規劃行程 <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-book"></i></div>
+                <h3>考試資源庫</h3>
+                <p>雲端考古題資料庫與共筆系統。利用大數據分析考題趨勢，協助你制定最高效的讀書計畫。</p>
+                <a href="考試.html" class="card-link">獲取資源 <i class="fas fa-arrow-right"></i></a>
+            </div>
+
+            <div class="tech-card" data-tilt>
+                <div class="card-icon"><i class="fas fa-network-wired"></i></div>
+                <h3>數位學習工具</h3>
+                <p>整合最新的生產力工具與 AI 學習助手。從 Notion 模板到 ChatGPT 應用教學，全面提升學習效率。</p>
+                <a href="#" class="card-link">提升效率 <i class="fas fa-arrow-right"></i></a>
             </div>
         </div>
-    </div>
+    </section>
 
-    
-   
-
-    <div class="footer">
+    <footer class="footer">
         <div class="footer-content">
-            <div class="footer-left">
-                <div class="logo">
-                    <div class="logo-icon">CT</div>
-                    <div class="logo-text">CampusTech</div>
-                </div>
-                <p>連結校園與科技，打造新一代大學生活體驗。我們致力於提供最新科技資訊、學習資源與校園生活指南，幫助學生充分發揮潛能。</p>
-                <div class="socials">
-                    <div class="social-icon"><i class="fab fa-facebook-f"></i></div>
-                    <div class="social-icon"><i class="fab fa-twitter"></i></div>
-                    <div class="social-icon"><i class="fab fa-instagram"></i></div>
-                    <div class="social-icon"><i class="fab fa-linkedin-in"></i></div>
+            <div class="footer-brand">
+                <div class="logo" style="font-size: 20px;">Campus<span>Tech</span></div>
+                <p>致力於將科技帶入校園，打造次世代的學習與生活體驗。<br>Empowering Students with Technology.</p>
+                <div style="margin-top: 20px; display: flex; gap: 15px;">
+                    <a href="#" style="color: #fff; font-size: 20px;"><i class="fab fa-facebook"></i></a>
+                    <a href="#" style="color: #fff; font-size: 20px;"><i class="fab fa-instagram"></i></a>
+                    <a href="#" style="color: #fff; font-size: 20px;"><i class="fab fa-github"></i></a>
                 </div>
             </div>
 
-            <div class="footer-right">
-                <div class="column">
+            <div class="footer-links">
+                <div class="footer-col">
                     <h4>校園生活</h4>
                     <ul>
-                        <li><a href="#">學習資源</a></li>
-                        <li><a href="#">社團活動</a></li>
-                        <li><a href="#">校園新聞</a></li>
-                        <li><a href="#">住宿指南</a></li>
-                        <li><a href="#">校園地圖</a></li>
+                        <li><a href="#">學習資源中心</a></li>
+                        <li><a href="#">社團活動情報</a></li>
+                        <li><a href="#">校園新聞網</a></li>
                     </ul>
                 </div>
-
-                <div class="column">
+                <div class="footer-col">
                     <h4>學術資源</h4>
                     <ul>
-                        <li><a href="#">課程資料</a></li>
-                        <li><a href="#">研究機會</a></li>
-                        <li><a href="#">圖書館資源</a></li>
+                        <li><a href="#">開放式課程</a></li>
+                        <li><a href="#">圖書館資料庫</a></li>
                         <li><a href="#">學術研討會</a></li>
-                        <li><a href="#">教授專欄</a></li>
                     </ul>
                 </div>
-
-                <div class="column">
+                <div class="footer-col">
                     <h4>職涯發展</h4>
                     <ul>
-                        <li><a href="#">實習機會</a></li>
-                        <li><a href="#">職缺公告</a></li>
-                        <li><a href="#">履歷指導</a></li>
-                        <li><a href="#">面試技巧</a></li>
-                        <li><a href="#">服裝指南</a></li>
+                        <li><a href="#">實習機會媒合</a></li>
+                        <li><a href="#">履歷健檢 AI</a></li>
+                        <li><a href="#">模擬面試</a></li>
                     </ul>
                 </div>
             </div>
         </div>
-
         <div class="copyright">
-            &copy;  CampusTech 大學生活平台。
+            &copy; 2025 CampusTech. All Rights Reserved.
         </div>
-    </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
-
+    
     <script>
-        // 初始化粒子背景
         particlesJS('particles-js', {
             particles: {
-                number: { value: 100, density: { enable: true, value_area: 800 } },
-                color: { value: "#8b5cf6" },
-                shape: { type: "circle", stroke: { width: 0, color: "#000000" } },
+                number: { value: 60, density: { enable: true, value_area: 800 } },
+                color: { value: ["#00f3ff", "#bc13fe"] },
+                shape: { type: "circle" },
                 opacity: { value: 0.5, random: true },
                 size: { value: 3, random: true },
                 line_linked: {
                     enable: true,
                     distance: 150,
-                    color: "#6366f1",
-                    opacity: 0.3,
+                    color: "#4d4dff",
+                    opacity: 0.2,
                     width: 1
                 },
                 move: {
                     enable: true,
-                    speed: 2,
+                    speed: 1.5,
                     direction: "none",
-                    random: true,
+                    random: false,
                     straight: false,
                     out_mode: "out",
                     bounce: false
@@ -1225,41 +626,36 @@
             interactivity: {
                 detect_on: "canvas",
                 events: {
-                    onhover: { enable: true, mode: "grab" },
-                    onclick: { enable: true, mode: "push" },
+                    onhover: { enable: true, mode: "repulse" },
                     resize: true
-                },
-                modes: {
-                    grab: { distance: 140, line_linked: { opacity: 1 } },
-                    push: { particles_nb: 4 }
                 }
             },
             retina_detect: true
         });
 
-        // 新增互動效果
-        document.addEventListener('DOMContentLoaded', function () {
-            // 卡片動畫
-            const cards = document.querySelectorAll('.card');
-            cards.forEach((card, index) => {
-                card.style.transitionDelay = `${index * 0.1}s`;
-            });
-
-            // 捲動動畫
-            const cardObserver = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1 });
-
+        document.addEventListener("DOMContentLoaded", () => {
+            const cards = document.querySelectorAll('[data-tilt]');
+            
             cards.forEach(card => {
-                cardObserver.observe(card);
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    const rotateX = ((y - centerY) / centerY) * -5;
+                    const rotateY = ((x - centerX) / centerX) * 5;
+
+                    card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.02)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale(1)';
+                });
             });
 
-            // 導覽列捲動效果
-            window.addEventListener('scroll', function () {
+            window.addEventListener('scroll', () => {
                 const navbar = document.querySelector('.navbar');
                 if (window.scrollY > 50) {
                     navbar.classList.add('scrolled');
@@ -1268,58 +664,14 @@
                 }
             });
 
-            // 漢堡選單功能
             const hamburger = document.querySelector('.hamburger');
             const navLinks = document.querySelector('.nav-links');
-            
-            hamburger.addEventListener('click', function() {
-                this.classList.toggle('active');
+
+            hamburger.addEventListener('click', () => {
+                hamburger.classList.toggle('active');
                 navLinks.classList.toggle('active');
-            });
-
-            // 註冊按鈕動畫
-            const registerBtn = document.querySelector('.register');
-            if(registerBtn) {
-                registerBtn.addEventListener('mousemove', (e) => {
-                    const rect = registerBtn.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-
-                    registerBtn.style.setProperty('--x', `${x}px`);
-                    registerBtn.style.setProperty('--y', `${y}px`);
-                });
-            }
-
-            // 新增資料統計動畫
-            const statValues = document.querySelectorAll('.stat-value');
-            statValues.forEach(value => {
-                const target = +value.innerText.replace(/\D/g, '');
-                let count = 0;
-                const duration = 2000;
-                const increment = target / (duration / 16);
-
-                const updateCount = () => {
-                    if (count < target) {
-                        count += increment;
-                        value.innerText = Math.ceil(count) + (value.innerText.includes('%') ? '%' : '+');
-                        requestAnimationFrame(updateCount);
-                    } else {
-                        value.innerText = target.toLocaleString() + (value.innerText.includes('%') ? '%' : '+');
-                    }
-                };
-
-                const statObserver = new IntersectionObserver((entries) => {
-                    if (entries[0].isIntersecting) {
-                        updateCount();
-                        statObserver.unobserve(value);
-                    }
-                }, { threshold: 0.5 });
-
-                statObserver.observe(value);
             });
         });
     </script>
 </body>
-
 </html>
-
