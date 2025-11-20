@@ -16,16 +16,32 @@ jobs:
       with:
         python-version: '3.10'
         
+    - name: Cache Python packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
     - name: Install dependencies
       run: |
-        pip install -r requirements.txt
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         
+    - name: Create output directory
+      run: mkdir -p csv
+      
     - name: Run crawler
       run: python dcard_crawler.py
       timeout-minutes: 15
       
+    - name: List generated files
+      run: ls -la csv/  # 檢查生成的文件
+      
     - name: Upload results
-      uses: actions/upload-artifact@v4  # 更新到 v4 版本
+      uses: actions/upload-artifact@v4
       with:
         name: dcard-data
         path: csv/
+        retention-days: 7
