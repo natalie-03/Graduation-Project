@@ -28,19 +28,33 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # ***** 修正處 1: 指定 requirements.txt 的完整路徑 (在 workflows 資料夾內) *****
+          # 升級 pip 以防萬一
+          python -m pip install --upgrade pip
+          # 安裝你在 requirements.txt 指定的套件
           pip install -r .github/workflows/requirements.txt
 
       - name: Run Crawler
-        # ***** 修正處 2: 執行 .github/workflows/ 內的 scraper.py *****
-        run: python .github/workflows/scraper.py
+        # ***** 關鍵修正：加上 -u 讓 log 即時顯示 *****
+        run: python -u .github/workflows/scraper.py
+        # ***** 保護機制：設定 35 分鐘超時，避免卡死浪費時數 *****
+        timeout-minutes: 35
+        env:
+          # 雖然 headless 不一定需要，但設一下比較保險
+          DISPLAY: :99
 
       - name: Commit and Push Data
+        # 即使爬蟲出錯 (例如超時)，只要有存到檔，這一步還是會嘗試執行
+        if: always() 
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          # 檢查並加入 csv 資料夾下的所有 .csv 檔案
+          
+          # 確保 csv 資料夾存在，避免 git add 報錯
+          mkdir -p csv
+          
+          # 加入 csv 資料夾下的所有 .csv 檔案
           git add csv/*.csv
-          # 如果有變更才 commit
+          
+          # 如果有變更才 commit，沒變更就 echo 訊息
           git commit -m "Auto-update crawler data [skip ci]" || echo "No changes to commit"
           git push
