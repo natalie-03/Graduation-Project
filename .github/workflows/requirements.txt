@@ -1,3 +1,4 @@
-undetected-chromedriver
-selenium
+requests
 pandas
+selenium
+undetected-chromedriver
