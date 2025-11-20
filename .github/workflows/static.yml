@@ -21,7 +21,8 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Install Chrome
+      # ---- Install Chrome ----
+      - name: Install Google Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y wget gnupg
@@ -29,28 +30,48 @@ jobs:
           echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
+          google-chrome --version
 
-      - name: Install ChromeDriver
+      # ---- Install jq (JSON parser) ----
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      # ---- Install ChromeDriver (2025 New API) ----
+      - name: Install ChromeDriver (2025 fixed)
         run: |
+          # Get Chrome version
           CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //')
-          CHROME_MAJOR=$(echo $CHROME_VERSION | cut -d. -f1)
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_MAJOR")
-          wget https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
+          echo "Installed Chrome version: $CHROME_VERSION"
+
+          # Use Chrome for Testing API to get correct ChromeDriver version
+          DRIVER_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
+            | jq -r ".channels.Stable.version")
+
+          echo "Using ChromeDriver: $DRIVER_VERSION"
+
+          # Download ChromeDriver
+          wget -O chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/$DRIVER_VERSION/linux64/chromedriver-linux64.zip
+          unzip chromedriver.zip
+
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
           sudo chmod +x /usr/local/bin/chromedriver
 
+          chromedriver --version
+
+      # ---- Install Python dependencies ----
       - name: Install dependencies
         run: |
           pip install --upgrade pip
           pip install -r .github/workflows/requirements.txt
 
+      # ---- Execute scraper ----
       - name: Run Crawler
         run: python -u .github/workflows/scraper.py
         timeout-minutes: 35
         env:
           DISPLAY: :99
 
+      # ---- Commit & Push Data ----
       - name: Commit and Push Data
         if: always()
         run: |
@@ -59,7 +80,7 @@ jobs:
 
           mkdir -p csv
 
-          # 避免空資料夾報錯：用 if 判斷是否有 csv 檔案
+          # Only add CSV if exists
           if ls csv/*.csv 1> /dev/null 2>&1; then
             git add csv/*.csv
           else
