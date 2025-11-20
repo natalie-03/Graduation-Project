@@ -1,91 +1,31 @@
-name: Dcard Crawler Daily
-
+name: Dcard Crawler
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 jobs:
-  scrape:
+  crawl:
     runs-on: ubuntu-latest
-
-    permissions:
-      contents: write
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.10'
-
-      # ---- Install Chrome ----
-      - name: Install Google Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee -a /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          google-chrome --version
-
-      # ---- Install jq (JSON parser) ----
-      - name: Install jq
-        run: sudo apt-get install -y jq
-
-      # ---- Install ChromeDriver (2025 New API) ----
-      - name: Install ChromeDriver (2025 fixed)
-        run: |
-          # Get Chrome version
-          CHROME_VERSION=$(google-chrome --version | sed 's/Google Chrome //')
-          echo "Installed Chrome version: $CHROME_VERSION"
-
-          # Use Chrome for Testing API to get correct ChromeDriver version
-          DRIVER_VERSION=$(curl -s https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions-with-downloads.json \
-            | jq -r ".channels.Stable.version")
-
-          echo "Using ChromeDriver: $DRIVER_VERSION"
-
-          # Download ChromeDriver
-          wget -O chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/$DRIVER_VERSION/linux64/chromedriver-linux64.zip
-          unzip chromedriver.zip
-
-          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/chromedriver
-          sudo chmod +x /usr/local/bin/chromedriver
-
-          chromedriver --version
-
-      # ---- Install Python dependencies ----
-      - name: Install dependencies
-        run: |
-          pip install --upgrade pip
-          pip install -r .github/workflows/requirements.txt
-
-      # ---- Execute scraper ----
-      - name: Run Crawler
-        run: python -u .github/workflows/scraper.py
-        timeout-minutes: 35
-        env:
-          DISPLAY: :99
-
-      # ---- Commit & Push Data ----
-      - name: Commit and Push Data
-        if: always()
-        run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "actions@github.com"
-
-          mkdir -p csv
-
-          # Only add CSV if exists
-          if ls csv/*.csv 1> /dev/null 2>&1; then
-            git add csv/*.csv
-          else
-            echo "No CSV files found to add."
-          fi
-
-          git commit -m "Auto-update crawler data [skip ci]" || echo "No changes to commit"
-          git push
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Run crawler
+      run: python dcard_crawler.py
+      timeout-minutes: 15
+      
+    - name: Upload results
+      uses: actions/upload-artifact@v3
+      with:
+        name: dcard-data
+        path: csv/
