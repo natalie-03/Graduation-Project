@@ -1,57 +1,31 @@
-name: Dcard Crawler Daily
-
+name: Dcard Crawler
 on:
-  workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '0 2 * * *'  # 每天凌晨2點執行
+  workflow_dispatch:  # 手動觸發
 
 jobs:
-  scrape:
+  crawl:
     runs-on: ubuntu-latest
     
-    permissions:
-      contents: write
-
     steps:
-      # 修正 1: checkout 版本升級 v3 -> v4
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # 修正 2: setup-python 版本升級 v4 -> v5
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          # 優先讀取 requirements.txt，如果沒有則直接安裝 cloudscraper
-          if [ -f .github/workflows/requirements.txt ]; then
-            pip install -r .github/workflows/requirements.txt
-          else
-            pip install requests pandas cloudscraper
-          fi
-
-      - name: Run Crawler
-        run: python -u .github/workflows/scraper.py
-        timeout-minutes: 15
-
-      - name: Commit and Push Data
-        if: always() 
-        run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "actions@github.com"
-          
-          # 確保資料夾存在
-          mkdir -p csv
-          
-          # 檢查是否有 csv 檔案存在 (修復 pathspec error)
-          if ls csv/*.csv 1> /dev/null 2>&1; then
-            echo "✅ 發現 CSV 檔案，準備提交..."
-            git add csv/*.csv
-            git commit -m "Auto-update data [skip ci]" || echo "⚠️ 沒有變更需要提交"
-            git push
-          else
-            echo "💤 本次執行沒有產出任何 CSV 檔案，跳過提交步驟。"
-          fi
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Run crawler
+      run: python dcard_crawler.py
+      timeout-minutes: 15
+      
+    - name: Upload results
+      uses: actions/upload-artifact@v4  # 更新到 v4 版本
+      with:
+        name: dcard-data
+        path: csv/
