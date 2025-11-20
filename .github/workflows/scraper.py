@@ -178,7 +178,7 @@ def main():
     finally:
         if driver:
             driver.quit()
-
+print(driver.page_source[:1000])
 if __name__ == "__main__":
     main()
 
