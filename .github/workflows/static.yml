@@ -1,60 +1,83 @@
 name: Dcard Crawler Daily
 
 on:
-  workflow_dispatch:      # 允許手動點擊按鈕執行
+  workflow_dispatch:      # 手動執行
   schedule:
-    - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
+    - cron: '0 16 * * *'  # 每天台灣時間 00:00（UTC 16:00）
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write     # 給予權限讓機器人可以 git push CSV 回去
+      contents: write     # 允許 push CSV
 
     steps:
+      # -----------------------------------------------------
+      # 1. 把 repo checkout 下來
+      # -----------------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # -----------------------------------------------------
+      # 2. 安裝 Python
+      # -----------------------------------------------------
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
+      # -----------------------------------------------------
+      # 3. 安裝 Chrome 必要套件（必須先裝依賴）
+      # -----------------------------------------------------
+      - name: Install dependencies for Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            wget gnupg \
+            libnss3 libgconf-2-4 libfontconfig1 libxkbcommon0 libxdamage1 \
+            libxrandr2 libgbm1 libasound2 libatk1.0-0 libcups2 libatk-bridge2.0-0
+
+      # -----------------------------------------------------
+      # 4. 安裝 Chrome（最正確方法）
+      # -----------------------------------------------------
       - name: Install Chrome
         run: |
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          sudo sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" \
+            > /etc/apt/sources.list.d/google-chrome.list'
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Install dependencies
+      # -----------------------------------------------------
+      # 5. 安裝 Python 套件（含 undetected_chromedriver）
+      # -----------------------------------------------------
+      - name: Install Python dependencies
         run: |
-          # 升級 pip 以防萬一
           python -m pip install --upgrade pip
-          # 安裝你在 requirements.txt 指定的套件
           pip install -r .github/workflows/requirements.txt
 
+      # -----------------------------------------------------
+      # 6. 執行爬蟲（加 -u 確保日誌正常輸出）
+      # -----------------------------------------------------
       - name: Run Crawler
-        # ***** 關鍵修正：加上 -u 讓 log 即時顯示 *****
         run: python -u .github/workflows/scraper.py
-        # ***** 保護機制：設定 35 分鐘超時，避免卡死浪費時數 *****
         timeout-minutes: 35
         env:
-          # 雖然 headless 不一定需要，但設一下比較保險
           DISPLAY: :99
 
+      # -----------------------------------------------------
+      # 7. 將 CSV 存回 GitHub Repo
+      # -----------------------------------------------------
       - name: Commit and Push Data
-        # 即使爬蟲出錯 (例如超時)，只要有存到檔，這一步還是會嘗試執行
-        if: always() 
+        if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          
-          # 確保 csv 資料夾存在，避免 git add 報錯
+
           mkdir -p csv
-          
-          # 加入 csv 資料夾下的所有 .csv 檔案
-          git add csv/*.csv
-          
-          # 如果有變更才 commit，沒變更就 echo 訊息
+
+          git add csv/*.csv || true
+
           git commit -m "Auto-update crawler data [skip ci]" || echo "No changes to commit"
           git push
