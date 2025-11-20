@@ -22,7 +22,7 @@ BOARDS = {
     "exam": "考試.csv"
 }
 
-TARGET_COUNT = 10000  # 目標爬取數量
+TARGET_COUNT = 5000  # 目標爬取數量
 OUTPUT_DIR = "csv"    # 設定輸出的資料夾名稱
 BATCH_SIZE = 5        # 每幾篇存檔一次
 
