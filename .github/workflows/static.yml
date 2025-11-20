@@ -1,43 +1,46 @@
-# Simple workflow for deploying static content to GitHub Pages
-name: Deploy static content to Pages
+name: Dcard Crawler Daily
 
 on:
-  # Runs on pushes targeting the default branch
-  push:
-    branches: ["main"]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-concurrency:
-  group: "pages"
-  cancel-in-progress: false
+  workflow_dispatch:      # 允許手動點擊按鈕執行
+  schedule:
+    - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
 
 jobs:
-  # Single deploy job since we're just deploying
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  scrape:
     runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write     # 給予權限讓機器人可以 git push CSV 回去
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          # Upload entire repository
-          path: '.'
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          python-version: '3.10'
+
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install dependencies
+        run: |
+          # ***** 修正處 1: 指定 requirements.txt 的完整路徑 (在 workflows 資料夾內) *****
+          pip install -r .github/workflows/requirements.txt
+
+      - name: Run Crawler
+        # ***** 修正處 2: 執行 .github/workflows/ 內的 scraper.py *****
+        run: python .github/workflows/scraper.py
+
+      - name: Commit and Push Data
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          # 檢查並加入 csv 資料夾下的所有 .csv 檔案
+          git add csv/*.csv
+          # 如果有變更才 commit
+          git commit -m "Auto-update crawler data [skip ci]" || echo "No changes to commit"
+          git push
