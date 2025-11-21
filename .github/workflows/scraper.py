@@ -1,547 +1,230 @@
-from bs4 import BeautifulSoup
-
+import undetected_chromedriver as uc
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 import pandas as pd
-
 import time
-
 import random
-
 import os
 
-import re
-
-
-
-# -----------------------------
-
+# 設定要爬的看板
 BOARDS = {
-
     "travel": "旅遊.csv",
-
-    "food": "美食.csv", 
-
+    "food": "美食.csv",
     "job": "工作.csv",
-
     "graduate_school": "研究所.csv",
-
     "exam": "考試.csv"
-
 }
 
+TARGET_COUNT = 10000  # 目標爬取數量
+OUTPUT_DIR = "csv"    # 設定輸出的資料夾名稱
+BATCH_SIZE = 5        # 每幾篇存檔一次
+MAX_LOAD_WAIT = 20    # 最大等待載入時間 (秒)
+
+def get_driver():
+    """設定適用於 GitHub Actions 的 Chrome"""
+    options = uc.ChromeOptions()
+    # 關鍵：啟用無頭模式 (Headless)
+    options.add_argument("--headless=new") 
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    # 模擬真實使用者
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+    
+    # 明確指定 Chrome 執行檔路徑 (適用於 GitHub Actions Ubuntu 環境)
+    chrome_path = "/usr/bin/google-chrome"
+    if os.path.exists(chrome_path):
+        options.binary_location = chrome_path
+        print(f"✅ 找到 Chrome Binary: {chrome_path}")
+    
+    print("正在啟動 Headless Chrome (純 Selenium 版)...")
+    try:
+        # 使用 uc.Chrome() 啟動瀏覽器
+        driver = uc.Chrome(options=options, version_main=None)
+        return driver
+    except Exception as e:
+        print(f"❌ 嚴重錯誤：無法啟動 undetected-chromedriver。錯誤: {e}")
+        return None
 
 
-OUTPUT_DIR = "csv"
-
-TARGET_COUNT = 20  # 降低目標數量
-
-# -----------------------------
-
-
-
-def get_headers():
-
-    return {
-
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-
-        'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-
-        'Accept-Encoding': 'gzip, deflate, br',
-
-        'DNT': '1',
-
-        'Connection': 'keep-alive',
-
-        'Upgrade-Insecure-Requests': '1',
-
-        'Sec-Fetch-Dest': 'document',
-
-        'Sec-Fetch-Mode': 'navigate',
-
-        'Sec-Fetch-Site': 'none',
-
-        'Cache-Control': 'max-age=0',
-
-    }
-
-
-
-def save_csv(new_rows, filepath):
-
-    if not new_rows:
-
-        print("⚠️ 無新資料可儲存")
-
-        return
-
-        
-
-    df = pd.DataFrame(new_rows)
-
-    header = not os.path.exists(filepath)
-
-    df.to_csv(filepath, mode='a', header=header, index=False, encoding='utf-8-sig')
-
-    print(f"💾 已儲存 {len(new_rows)} 筆資料到 {filepath}")
-
-
-
-def crawl_board(board, filename):
-
+def crawl_board(driver, board, filename):
+    if not driver: return 
+    
     csv_path = os.path.join(OUTPUT_DIR, filename)
-
-    print(f"🚀 開始爬取：{board}")
-
     
-
-    # 使用 Dcard API 獲取文章列表
-
-    api_url = f"https://www.dcard.tw/service/api/v2/forums/{board}/posts"
-
-    params = {
-
-        'limit': TARGET_COUNT,
-
-        'popular': 'false'  # 最新文章
-
-    }
-
+    print(f"🚀 開始爬取：{board} (儲存至 {csv_path})")
+    url = f"https://www.dcard.tw/f/{board}?latest=true"
     
+    try:
+        driver.get(url)
+        print(f"  正在嘗試載入頁面並等待 Cloudflare 檢查 ({MAX_LOAD_WAIT} 秒)...")
+        
+        # 強制等待文章列表元素出現，如果超時則被判定為 Cloudflare 阻擋
+        WebDriverWait(driver, MAX_LOAD_WAIT).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, 'a[href*="/p/"]'))
+        )
+        print("  ✅ 成功通過 Cloudflare 檢查並載入文章列表 (或超時)。")
 
+    except Exception as e:
+        # 檢查是否停留在 Cloudflare 頁面
+        if "challenge" in driver.current_url.lower() or "dcard" not in driver.current_url.lower():
+            print(f"  ❌ 錯誤：爬蟲被 Cloudflare 阻擋或超時！當前 URL: {driver.current_url}")
+            print(f"  無法在 {MAX_LOAD_WAIT} 秒內通過檢查，停止爬取此看板。")
+            return
+        else:
+            print(f"  ❌ 載入頁面時發生一般錯誤: {e}")
+            return
+
+    # --- 階段一：收集連結 ---
     data = []
-
     collected_urls = set()
-
-
-
-    # 讀取舊資料避免重複
-
+    
+    # 1. 讀取舊資料避免重複 (斷點續傳)
     if os.path.exists(csv_path):
-
         try:
-
             old_df = pd.read_csv(csv_path)
-
             if "link" in old_df.columns:
-
-                collected_urls = set(old_df["link"].dropna().unique())
-
+                collected_urls = set(old_df["link"].unique())
+            
+            # 將舊資料放入 data，以便後續 append
+            data.extend(old_df[['title', 'link']].to_dict('records'))
+            
             print(f"  已讀取現有資料 {len(collected_urls)} 筆")
+        except:
+            # 如果讀取失敗，就從頭開始
+            pass
 
-        except Exception as e:
-
-            print(f"  讀取舊資料失敗: {e}")
-
-
-
-    try:
-
-        print(f"  請求 API: {api_url}")
-
-        response = requests.get(api_url, params=params, headers=get_headers(), timeout=30)
-
-        response.raise_for_status()
-
+    print("  正在收集文章連結...")
+    scroll_attempts = 0
+    last_height = driver.execute_script("return document.body.scrollHeight")
+    
+    # 收集連結迴圈 (最多滾動 100 次)
+    while len(data) < TARGET_COUNT and scroll_attempts < 100:
+        # 尋找所有文章連結元素
+        elems = driver.find_elements(By.CSS_SELECTOR, 'a[href*="/p/"]')
         
-
-        posts = response.json()
-
-        print(f"  API 返回 {len(posts)} 篇文章")
-
-        
-
-        for post in posts:
-
+        newly_added = 0
+        for elem in elems:
             try:
-
-                post_id = post['id']
-
-                title = post['title']
-
-                excerpt = post.get('excerpt', '')
-
-                link = f"https://www.dcard.tw/f/{board}/p/{post_id}"
-
-                
-
-                if link in collected_urls:
-
-                    continue
-
-                    
-
-                data.append({
-
-                    "title": title,
-
-                    "link": link,
-
-                    "content": "",
-
-                    "comments": "",
-
-                    "excerpt": excerpt
-
-                })
-
-                collected_urls.add(link)
-
-                
-
-            except Exception as e:
-
-                print(f"  處理文章資料時錯誤: {e}")
-
+                link = elem.get_attribute('href')
+                # 確保連結存在、未重複、且確實是文章連結
+                if link and "/p/" in link and link not in collected_urls:
+                    collected_urls.add(link)
+                    # 只收集 link，title, content 稍後再爬取
+                    data.append({"title": "待爬取", "link": link, "content": None, "comments": None}) 
+                    newly_added += 1
+            except:
                 continue
+        
+        print(f"\r  目前已收集 {len(data)} 篇新文章連結...", end="")
+        
+        # 滾動邏輯
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(random.uniform(1.5, 3))
+        
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            scroll_attempts += 1
+        else:
+            scroll_attempts = 0
+            last_height = new_height
+            
+    print(f"\n  連結收集完成，共 {len(data)} 篇。準備爬取內容。")
 
-                
-
-    except Exception as e:
-
-        print(f"❌ API 請求失敗: {e}")
-
-        # 如果 API 失敗，嘗試使用網頁爬取
-
-        return crawl_board_fallback(board, filename)
-
-
-
-    # 爬取文章詳細內容
-
-    results = []
-
-    for i, item in enumerate(data):
-
+    # --- 階段二：進入內文爬取 (只處理新收集的連結) ---
+    # 找出尚未爬取內容的文章 (content is None)
+    new_data_to_crawl = [item for item in data if item.get('content') is None or item.get('content') == '待爬取']
+    
+    total_newly_crawled = 0
+    
+    for i, item in enumerate(new_data_to_crawl):
+        if total_newly_crawled >= TARGET_COUNT: break
+        
         try:
-
-            print(f"  正在處理第 {i+1}/{len(data)} 篇文章: {item['title'][:30]}...")
-
+            driver.get(item['link'])
+            time.sleep(random.uniform(2, 4)) # 隨機休息
             
-
-            # 使用文章 API 獲取詳細內容
-
-            post_id = item['link'].split('/p/')[-1]
-
-            post_api_url = f"https://www.dcard.tw/service/api/v2/posts/{post_id}"
-
+            # 抓標題 (強制等待)
+            try:
+                h1 = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.TAG_NAME, "h1"))
+                )
+                item['title'] = h1.text
+            except:
+                item['title'] = "無標題"
             
+            # 抓內文
+            try:
+                article = driver.find_element(By.TAG_NAME, "article")
+                item['content'] = article.text
+            except:
+                item['content'] = "無法讀取內文"
 
-            response = requests.get(post_api_url, headers=get_headers(), timeout=30)
+            # 抓留言
+            comments = []
+            try:
+                cmt_blocks = driver.find_elements(By.CSS_SELECTOR, '[data-testid="comment-content"]')
+                for cb in cmt_blocks[:10]:
+                    comments.append(cb.text.replace("\n", " "))
+            except:
+                pass
+            item['comments'] = " || ".join(comments)
+            
+            total_newly_crawled += 1
+            print(f"  [{total_newly_crawled}/{len(new_data_to_crawl)}] {item['title'][:15]}...")
 
-            if response.status_code == 200:
-
-                post_detail = response.json()
-
-                item['content'] = post_detail.get('content', '')
-
+            # === 關鍵修改：即時存檔邏輯 (將新爬取的內容更新到 data 列表，然後重新寫入整個 CSV) ===
+            if total_newly_crawled % BATCH_SIZE == 0:
+                # 找到 item 在 data 中的索引並更新它
+                save_csv(data, csv_path)
                 
-
-                # 獲取評論
-
-                comments_api_url = f"https://www.dcard.tw/service/api/v2/posts/{post_id}/comments"
-
-                comments_response = requests.get(comments_api_url, headers=get_headers(), timeout=30)
-
-                
-
-                comments = []
-
-                if comments_response.status_code == 200:
-
-                    comments_data = comments_response.json()
-
-                    for comment in comments_data[:5]:  # 只取前5條評論
-
-                        comment_content = comment.get('content', '')
-
-                        if comment_content:
-
-                            comments.append(comment_content)
-
-                
-
-                item['comments'] = " || ".join(comments) if comments else "無評論"
-
-            else:
-
-                # 如果 API 失敗，嘗試使用網頁爬取
-
-                item = crawl_post_content(item)
-
-            
-
-            results.append(item)
-
-            print(f"  ✅ 完成")
-
-            
-
-            # 隨機延遲避免被阻擋
-
-            time.sleep(random.uniform(1, 2))
-
-            
-
         except Exception as e:
-
-            print(f"  ❌ 處理文章內容時錯誤: {e}")
-
+            print(f"  ❌ 錯誤: {e}")
             continue
 
+    # 存最後一批
+    if new_data_to_crawl:
+        save_csv(data, csv_path)
 
-
-    if results:
-
-        save_csv(results, csv_path)
-
-        
-
-    print(f"✅ {board} 看板爬取完成，共處理 {len(results)} 篇文章")
-
-    return len(results)
-
-
-
-def crawl_board_fallback(board, filename):
-
-    """備用方法：使用網頁爬取如果 API 不可用"""
-
-    csv_path = os.path.join(OUTPUT_DIR, filename)
-
-    url = f"https://www.dcard.tw/f/{board}"
-
-    print(f"  使用備用方法爬取: {url}")
-
+def save_csv(data_list, filepath):
+    """將所有數據寫入 CSV 的函數 (覆蓋寫入，包含所有舊資料)"""
+    df = pd.DataFrame(data_list)
     
-
-    data = []
-
-    collected_urls = set()
-
-
-
-    # 讀取舊資料避免重複
-
-    if os.path.exists(csv_path):
-
-        try:
-
-            old_df = pd.read_csv(csv_path)
-
-            if "link" in old_df.columns:
-
-                collected_urls = set(old_df["link"].dropna().unique())
-
-        except Exception as e:
-
-            print(f"  讀取舊資料失敗: {e}")
-
-
-
-    try:
-
-        response = requests.get(url, headers=get_headers(), timeout=30)
-
-        response.raise_for_status()
-
-        
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        
-
-        # 尋找文章連結
-
-        links = []
-
-        for a in soup.find_all('a', href=True):
-
-            href = a['href']
-
-            if f'/f/{board}/p/' in href:
-
-                full_url = f"https://www.dcard.tw{href}" if href.startswith('/') else href
-
-                if full_url not in collected_urls and full_url not in links:
-
-                    links.append(full_url)
-
-        
-
-        print(f"  找到 {len(links)} 個文章連結")
-
-        
-
-        for link in links[:TARGET_COUNT]:
-
-            data.append({
-
-                "title": "待解析",
-
-                "link": link,
-
-                "content": "",
-
-                "comments": ""
-
-            })
-
-            
-
-    except Exception as e:
-
-        print(f"❌ 備用方法也失敗: {e}")
-
-        return 0
-
-
-
-    # 爬取文章內容
-
-    results = []
-
-    for i, item in enumerate(data):
-
-        try:
-
-            print(f"  正在處理第 {i+1}/{len(data)} 篇文章...")
-
-            item = crawl_post_content(item)
-
-            results.append(item)
-
-            print(f"  ✅ 完成")
-
-            
-
-            time.sleep(random.uniform(1, 2))
-
-            
-
-        except Exception as e:
-
-            print(f"  ❌ 處理文章內容時錯誤: {e}")
-
-            continue
-
-
-
-    if results:
-
-        save_csv(results, csv_path)
-
-        
-
-    print(f"✅ {board} 看板爬取完成，共處理 {len(results)} 篇文章")
-
-    return len(results)
-
-
-
-def crawl_post_content(item):
-
-    """爬取單篇文章內容"""
-
-    try:
-
-        response = requests.get(item['link'], headers=get_headers(), timeout=30)
-
-        if response.status_code != 200:
-
-            return item
-
-            
-
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        
-
-        # 獲取標題
-
-        title_elem = soup.find('h1')
-
-        if title_elem:
-
-            item['title'] = title_elem.get_text(strip=True)
-
-        
-
-        # 獲取內容
-
-        content_elem = soup.find('article') or soup.find('div', class_=re.compile('content|post'))
-
-        if content_elem:
-
-            item['content'] = content_elem.get_text(strip=True)
-
-        
-
-        # 獲取評論（簡單版本）
-
-        comments = []
-
-        comment_elems = soup.find_all('div', class_=re.compile('comment|reply'))
-
-        for comment in comment_elems[:5]:
-
-            comment_text = comment.get_text(strip=True)
-
-            if comment_text and len(comment_text) > 5:
-
-                comments.append(comment_text)
-
-        
-
-        item['comments'] = " || ".join(comments) if comments else "無評論"
-
-        
-
-    except Exception as e:
-
-        print(f"    爬取文章內容錯誤: {e}")
-
-    
-
-    return item
-
+    # 清理並保持欄位順序
+    if not df.empty:
+      df = df[['title', 'link', 'content', 'comments']].fillna('')
+      
+      try:
+          # 直接覆蓋整個檔案，確保數據完整
+          df.to_csv(filepath, index=False, encoding='utf-8-sig')
+          print(f"  💾 已更新並儲存 {len(df)} 筆總資料到 {filepath}")
+      except Exception as e:
+          print(f"  ❌ 存檔失敗: {e}")
 
 
 def main():
-
-    print("🎯 Dcard 爬蟲開始執行 (使用 API 方法)")
-
-    
-
+    # 1. 確保 csv 資料夾存在
     if not os.path.exists(OUTPUT_DIR):
-
         os.makedirs(OUTPUT_DIR)
-
         print(f"📁 已建立資料夾: {OUTPUT_DIR}")
 
+    driver = get_driver()
+    if not driver:
+        print("無法取得瀏覽器驅動程式，程序退出。")
+        return
 
-
-    total_processed = 0
-
-    for board, filename in BOARDS.items():
-
-        print(f"\n{'='*50}")
-
-        processed = crawl_board(board, filename)
-
-        total_processed += processed
-
-        print(f"{'='*50}\n")
-
-        time.sleep(2)  # 看板間隔
-
-        
-
-    print(f"🎉 所有看板爬取完成！總共處理 {total_processed} 篇文章")
-
-
+    try:
+        for board, filename in BOARDS.items():
+            crawl_board(driver, board, filename)
+            time.sleep(3) # 看板間稍微休息
+    except Exception as e:
+        print(f"發生全域錯誤: {e}")
+    finally:
+        if driver:
+            print("關閉瀏覽器...")
+            driver.quit()
 
 if __name__ == "__main__":
-
     main()
