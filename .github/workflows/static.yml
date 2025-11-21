@@ -1,45 +1,54 @@
-name: Run Dcard Crawler Daily
+name: Dcard Crawler Daily (Selenium)
 
 on:
+  workflow_dispatch:      # 允許手動點擊按鈕執行
   schedule:
-    - cron: "0 0 * * *"   # 每天台灣時間早上 8 點自動執行 (UTC 00:00)
-  workflow_dispatch:      # 允許手動觸發
+    - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
 
 jobs:
-  build:
+  scrape:
     runs-on: ubuntu-latest
     
-    permissions:          # 賦予 GITHUB_TOKEN 寫入權限以提交更改
-      contents: write
+    permissions:
+      contents: write     # 給予權限讓機器人可以 git push CSV 回去
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.10"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        # 這裡會讀取我們新增的 requirements.txt
-        pip install -r requirements.txt
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
 
-    - name: Run crawler
-      run: |
-        python crawler.py
+      - name: Install dependencies
+        run: |
+          pip install -r .github/workflows/requirements.txt
 
-    - name: Commit results
-      run: |
-        git config --global user.name "github-actions[bot]"
-        git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        # 檢查是否有檔案變更
-        git add csv/
-        if git diff --staged --quiet; then
-          echo "No changes to commit"
-        else
-          git commit -m "Daily crawler update $(date '+%Y-%m-%d %H:%M:%S')"
-          git push
-        fi
+      - name: Run Crawler
+        # 強制 10 分鐘超時，避免卡住無限等待
+        timeout-minutes: 10
+        run: python .github/workflows/scraper.py
+
+      - name: Commit and Push Data (容錯處理)
+        # 即使爬蟲失敗 (Run Crawler報錯)，也會嘗試執行這個步驟
+        if: always()
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          
+          # 檢查是否有任何 .csv 檔案存在才執行 git add/commit
+          # 'find' 會在發現第一個檔案後立刻退出 (quit)，避免不必要的遍歷
+          if find csv/ -name "*.csv" -print -quit 2>/dev/null; then
+            echo "Found CSV files. Starting commit."
+            git add csv/*.csv
+            git commit -m "Auto-update Dcard Selenium data [skip ci]" || echo "No changes to commit"
+            git push
+          else
+            echo "No new CSV files found. Skipping commit."
+          fi
