@@ -2,12 +2,15 @@ name: Run Dcard Crawler Daily
 
 on:
   schedule:
-    - cron: "0 0 * * *"   # 每天台灣時間早上 8 點自動執行
-  workflow_dispatch:
+    - cron: "0 0 * * *"   # 每天台灣時間早上 8 點自動執行 (UTC 00:00)
+  workflow_dispatch:      # 允許手動觸發
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
+    permissions:          # 賦予 GITHUB_TOKEN 寫入權限以提交更改
+      contents: write
 
     steps:
     - name: Checkout repository
@@ -20,7 +23,9 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install requests tqdm
+        python -m pip install --upgrade pip
+        # 這裡會讀取我們新增的 requirements.txt
+        pip install -r requirements.txt
 
     - name: Run crawler
       run: |
@@ -30,6 +35,11 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-        git add .
-        git commit -m "Daily crawler update $(date '+%Y-%m-%d %H:%M:%S')" || echo "No changes"
-        git push
+        # 檢查是否有檔案變更
+        git add csv/
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "Daily crawler update $(date '+%Y-%m-%d %H:%M:%S')"
+          git push
+        fi
