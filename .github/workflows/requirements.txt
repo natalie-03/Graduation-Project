@@ -1,6 +1,3 @@
-requests
-pandas
 selenium
 undetected-chromedriver
-beautifulsoup4
-tqdm
+pandas
