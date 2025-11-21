@@ -16,7 +16,7 @@ BOARDS = {
 }
 
 OUTPUT_DIR = "csv"
-TARGET_COUNT = 20  # 降低目標數量
+TARGET_COUNT = 20  # 目標數量
 # -----------------------------
 
 def get_headers():
@@ -24,14 +24,7 @@ def get_headers():
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
         'Accept-Language': 'zh-TW,zh;q=0.9,en;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br',
-        'DNT': '1',
         'Connection': 'keep-alive',
-        'Upgrade-Insecure-Requests': '1',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'none',
-        'Cache-Control': 'max-age=0',
     }
 
 def save_csv(new_rows, filepath):
@@ -41,6 +34,9 @@ def save_csv(new_rows, filepath):
         
     df = pd.DataFrame(new_rows)
     header = not os.path.exists(filepath)
+    # 確保目錄存在
+    os.makedirs(os.path.dirname(filepath), exist_ok=True)
+    
     df.to_csv(filepath, mode='a', header=header, index=False, encoding='utf-8-sig')
     print(f"💾 已儲存 {len(new_rows)} 筆資料到 {filepath}")
 
