@@ -1,4 +1,4 @@
-name: Dcard Crawler Daily (Selenium)
+name: Dcard 爬蟲每日執行 (Selenium)
 
 on:
   workflow_dispatch:      # 允許手動點擊按鈕執行
@@ -13,42 +13,50 @@ jobs:
       contents: write     # 給予權限讓機器人可以 git push CSV 回去
 
     steps:
-      - name: Checkout code
+      - name: 檢查程式碼
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      - name: 設定 Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install Chrome
+      - name: 安裝 Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: Install dependencies
+      - name: 安裝依賴套件
         run: |
           pip install -r .github/workflows/requirements.txt
 
-      - name: Run Crawler
+      - name: 執行爬蟲
         # 強制 10 分鐘超時，避免卡住無限等待
         timeout-minutes: 10
         run: python .github/workflows/scraper.py
 
-      - name: Commit and Push Data (容錯處理)
+      - name: 提交並推送資料 (容錯處理)
         # 即使爬蟲失敗 (Run Crawler報錯)，也會嘗試執行這個步驟
         if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
           
+          # 偵錯資訊
+          echo "當前目錄："
+          pwd
+          echo "csv 目錄內容："
+          ls -la csv/ 2>/dev/null || echo "csv 目錄不存在"
+          echo "尋找 CSV 檔案："
+          find csv/ -name "*.csv" 2>/dev/null
+          
           # 檢查是否有任何 .csv 檔案存在才執行 git add/commit
-          # 'find' 會在發現第一個檔案後立刻退出 (quit)，避免不必要的遍歷
-          if find csv/ -name "*.csv" -print -quit 2>/dev/null; then
-            echo "Found CSV files. Starting commit."
-            git add csv/*.csv
-            git commit -m "Auto-update Dcard Selenium data [skip ci]" || echo "No changes to commit"
+          if find csv/ -name "*.csv" -print -quit 2>/dev/null | grep -q .; then
+            echo "找到 CSV 檔案。開始提交。"
+            # 使用更安全的方式添加所有 CSV 檔案
+            find csv/ -name "*.csv" -exec git add {} +
+            git commit -m "自動更新 Dcard Selenium 資料 [skip ci]" || echo "沒有變更需要提交"
             git push
           else
-            echo "No new CSV files found. Skipping commit."
+            echo "沒有找到新的 CSV 檔案。跳過提交。"
           fi
