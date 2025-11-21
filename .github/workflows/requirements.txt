@@ -1,4 +1,6 @@
 selenium
-undetected-chromedriver
-pandas
+webdriver-manager
+requests
 beautifulsoup4
+lxml
+pandas
