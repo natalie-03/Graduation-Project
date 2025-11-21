@@ -30,6 +30,12 @@ def get_driver():
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1920,1080")
+    # 增加穩定性參數 (新增)
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-infobars")
+    options.add_argument("--disable-logging")
+    options.add_argument("--log-level=3")
+    
     # 模擬真實使用者
     options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
     
@@ -41,8 +47,8 @@ def get_driver():
     
     print("正在啟動 Headless Chrome (純 Selenium 版)...")
     try:
-        # 使用 uc.Chrome() 啟動瀏覽器
-        driver = uc.Chrome(options=options, version_main=None)
+        # 修正：明確指定 Chrome 主要版本為 120，提高穩定性
+        driver = uc.Chrome(options=options, version_main=120) 
         return driver
     except Exception as e:
         print(f"❌ 嚴重錯誤：無法啟動 undetected-chromedriver。錯誤: {e}")
