@@ -1,16 +1,19 @@
 name: Dcard 爬蟲每日執行 (Selenium)
 
 on:
-  workflow_dispatch:      # 允許手動點擊按鈕執行
+  workflow_dispatch:
   schedule:
     - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    
+
     permissions:
-      contents: write     # 給予權限讓機器人可以 git push CSV 回去
+      contents: write
+
+    env:
+      TZ: "Asia/Taipei"
 
     steps:
       - name: 檢查程式碼
@@ -21,42 +24,88 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: 安裝 Chrome
+      - name: 安裝系統套件（curl/unzip/wget/xvfb）
         run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip wget curl xvfb gnupg2 ca-certificates
+
+      - name: 安裝 Google Chrome stable
+        run: |
+          # 加入 Google 官方 repo 並安裝 chrome
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
 
-      - name: 安裝依賴套件
+      - name: 安裝對應版本的 chromedriver
         run: |
-          pip install -r .github/workflows/requirements.txt
+          # 取得 Chrome major version
+          CHROME_VER=$(google-chrome --version | grep -oP '\d+' | head -1)
+          echo "Detected Chrome major version: $CHROME_VER"
 
-      - name: 執行爬蟲
-        # 強制 10 分鐘超時，避免卡住無限等待
+          # 取得 chromedriver 對應的最新 release for that major
+          LATEST=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VER")
+          if [ -z "$LATEST" ]; then
+            echo "找不到 LATEST_RELEASE for $CHROME_VER — 退回到 LATEST"
+            LATEST=$(curl -sS "https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+          fi
+          echo "Will download chromedriver version: $LATEST"
+
+          wget -q "https://chromedriver.storage.googleapis.com/${LATEST}/chromedriver_linux64.zip"
+          unzip -qq chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/chromedriver
+          sudo chmod +x /usr/local/bin/chromedriver
+          /usr/local/bin/chromedriver --version
+
+      - name: 安裝 pip 依賴
+        run: |
+          pip install --upgrade pip
+          pip install -r .github/workflows/requirements.txt
+          # 建議也安裝 webdriver-manager（如果你想用 Python 自動取得 chromedriver）
+          pip install webdriver-manager
+
+      - name: 執行爬蟲（有 xvfb fallback、10 分鐘超時）
         timeout-minutes: 10
-        run: python .github/workflows/scraper.py
+        run: |
+          echo "=== 環境檢查 ==="
+          python -V
+          google-chrome --version || true
+          chromedriver --version || true
+          echo "=== 開始執行爬蟲（使用 xvfb-run 以防有 GUI 需求） ==="
+          # 若你的 scraper.py 已改成 headless 模式，可直接執行；否則使用 xvfb-run
+          xvfb-run --auto-servernum --server-args='-screen 0 1920x1080x24' python .github/workflows/scraper.py
+        # 若你想在沒有 xvfb 的情況只用 headless，直接改成 python .github/workflows/scraper.py
+
+      - name: 收集 debug logs（若有）
+        if: failure()
+        run: |
+          echo "執行失敗—嘗試列出當前資料、log"
+          pwd
+          ls -la || true
+          echo "csv 目錄內容："
+          ls -la csv/ 2>/dev/null || echo "csv 目錄不存在"
+          echo "找爬蟲 log 檔："
+          find . -maxdepth 3 -type f -name "*log*" -print || true
 
       - name: 提交並推送資料 (容錯處理)
-        # 即使爬蟲失敗 (Run Crawler報錯)，也會嘗試執行這個步驟
         if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          
-          # 偵錯資訊
+
           echo "當前目錄："
           pwd
           echo "csv 目錄內容："
           ls -la csv/ 2>/dev/null || echo "csv 目錄不存在"
           echo "尋找 CSV 檔案："
           find csv/ -name "*.csv" 2>/dev/null
-          
-          # 檢查是否有任何 .csv 檔案存在才執行 git add/commit
+
           if find csv/ -name "*.csv" -print -quit 2>/dev/null | grep -q .; then
             echo "找到 CSV 檔案。開始提交。"
-            # 使用更安全的方式添加所有 CSV 檔案
             find csv/ -name "*.csv" -exec git add {} +
             git commit -m "自動更新 Dcard Selenium 資料 [skip ci]" || echo "沒有變更需要提交"
-            git push
+            # 如果需要使用 token 推送，請確保你有設定 GITHUB_TOKEN 或 personal access token
+            git push || echo "git push 失敗"
           else
             echo "沒有找到新的 CSV 檔案。跳過提交。"
           fi
