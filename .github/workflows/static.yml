@@ -1,84 +1,55 @@
-name: Dcard Crawler Daily (Selenium Ultimate)
+name: Dcard Crawler Daily (Selenium)
 
 on:
-  workflow_dispatch: # 允許手動觸發
-  schedule:
-    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
+  workflow_dispatch:
+  schedule:
+    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
 
 jobs:
-  scrape:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write # 賦予 Commit 權限
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
-    steps:
-      # 1. 檢出程式碼
-      - name: Checkout code
-        uses: actions/checkout@v4 # 升級到 v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      # 2. 設定 Python 環境
-      - name: Set up Python
-        uses: actions/setup-python@v5 # 升級到 v5
-        with:
-          python-version: '3.10'
-          cache: 'pip' # 內建 cache 功能，不需要額外的 cache step
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
 
-      # 3. 安裝系統級依賴 (關鍵優化：Xvfb)
-      # 作用：建立虛擬螢幕，讓 Selenium 認為有真實顯示器，繞過 Headless 檢測
-      - name: Install System Dependencies (Xvfb)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb libxi6 libgconf-2-4
+      - name: Cache Python dependencies  # 新增快取步驟
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('.github/workflows/requirements.txt') }}
 
-      # 4. 安裝 Python 依賴
-      - name: Install Python dependencies
-        run: |
-          pip install --upgrade pip
-          pip install undetected_chromedriver selenium
-          if [ -f .github/workflows/requirements.txt ]; then pip install -r .github/workflows/requirements.txt; fi
+      - name: Install Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
 
-      # 5. 執行爬蟲 (關鍵優化：使用 xvfb-run)
-      # 使用 xvfb-run 包裹 python 指令，模擬 1920x1080 螢幕
-      - name: Run Crawler with Virtual Display
-        timeout-minutes: 15 # 稍微延長時間以容錯
-        run: |
-          xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" python .github/workflows/scraper.py
-        env:
-          # 可以在這裡傳入環境變數，例如通知用的 Webhook
-          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }} 
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install undetected_chromedriver selenium  # 明確安裝核心套件
+          pip install -r .github/workflows/requirements.txt
 
-      # 6. 失敗時上傳截圖 (偵錯神器)
-      # 如果爬蟲失敗，將當前目錄下的 screenshots 資料夾打包上傳，方便你檢查是被擋還是程式錯誤
-      - name: Upload Error Screenshots
-        if: failure() 
-        uses: actions/upload-artifact@v4
-        with:
-          name: error-screenshots
-          path: |
-            *.png
-            logs/
-            error.log
+      - name: Run Crawler
+        timeout-minutes: 10
+        run: python .github/workflows/scraper.py
 
-      # 7. 提交並推送資料 (增強版)
-      - name: Commit and Push Data
-        if: success() # 只有成功才執行
-        run: |
-          git config --global user.name "Dcard Bot"
-          git config --global user.email "actions@github.com"
-          
-          # 先拉取最新代碼，避免衝突
-          git pull --rebase
-          
-          # 檢查是否有 CSV 檔案變更
-          if [ -d "csv" ] && [ "$(ls -A csv)" ]; then
-            git add csv
-            # 檢查是否有變更需要提交
-            if ! git diff-index --quiet HEAD; then
-              git commit -m "📅 Auto-update Dcard data: $(date +'%Y-%m-%d') [skip ci]"
-              git push
-            else
-              echo "No changes detected."
-            fi
-          else
-            echo "No csv directory or files found."
-          fi
+      - name: Commit and Push Data
+        if: always()
+        run: |
+          git config --global user.name "GitHub Action Bot"
+          git config --global user.email "actions@github.com"
+          if [ -d "csv" ] && [ "$(ls -A csv)" ]; then
+            git add csv
+            git commit -m "Auto-update Dcard data [skip ci]" || echo "No changes"
+            git push
+          else
+            echo "No new files. Skipping commit."
+          fi
