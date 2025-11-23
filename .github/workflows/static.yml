@@ -20,25 +20,30 @@ jobs:
         with:
           python-version: '3.10'
 
-      - name: Cache Python dependencies  # 新增快取步驟
+      # 推薦：使用 browser-actions 安裝 Chrome，比 apt-get 更穩定
+      - name: Setup Chrome
+        uses: browser-actions/setup-chrome@latest
+        with:
+          chrome-version: stable
+
+      - name: Cache Python dependencies
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('.github/workflows/requirements.txt') }}
 
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
       - name: Install dependencies
         run: |
           pip install --upgrade pip
-          pip install undetected_chromedriver selenium  # 明確安裝核心套件
-          pip install -r .github/workflows/requirements.txt
+          pip install undetected_chromedriver selenium
+          # 如果有 requirements.txt 請取消註解下一行
+          # pip install -r .github/workflows/requirements.txt
 
       - name: Run Crawler
         timeout-minutes: 10
+        env:
+          # 將 Chrome 路徑傳入環境變數，讓 Python 腳本讀取
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
         run: python .github/workflows/scraper.py
 
       - name: Commit and Push Data
