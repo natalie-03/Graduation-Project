@@ -1,71 +1,184 @@
-name: Dcard Crawler Daily (Selenium)
+name: Dcard Crawler Daily (Enhanced)
 
 on:
   workflow_dispatch:
+    inputs:
+      forum:
+        description: '要爬取的看板名稱'
+        required: false
+        default: 'mood'
+      pages:
+        description: '要爬取的頁數'
+        required: false
+        default: '5'
   schedule:
-    - cron: '0 16 * * *'  # 每天 UTC 16:00 → 台灣 00:00
+    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
+  push:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/crawler.yml'
+      - 'scripts/**'
+
+env:
+  PYTHON_VERSION: '3.10'
+  CHROME_VERSION: 'latest'
+  DATA_DIR: 'data'
+  LOG_LEVEL: 'INFO'
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     permissions:
       contents: write
-
+    
+    strategy:
+      matrix:
+        forum: [mood, fun, talk, relationship]
+    
     steps:
-      # --- 檢出程式碼 ---
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      # --- 安裝 Python ---
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
 
-      # --- pip 快取（大幅提升速度） ---
-      - name: Cache pip packages
+      - name: Cache dependencies
         uses: actions/cache@v3
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          path: |
+            ~/.cache/pip
+            ~/.cache/selenium
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      # --- 安裝最新版 Google Chrome (官方 source) ---
-      - name: Install Google Chrome
+      - name: Install System Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-          google-chrome --version
+          sudo apt-get install -y \
+            google-chrome-stable \
+            chromium-chromedriver \
+            xvfb \
+            wget \
+            curl \
+            jq
 
-      # --- 安裝 Python 套件 ---
-      - name: Install Dependencies
+      - name: Install Python Dependencies
         run: |
           pip install --upgrade pip
-          pip install --upgrade undetected-chromedriver selenium webdriver-manager
           pip install -r requirements.txt
+          # 備用安裝方式
+          pip install undetected-chromedriver>=3.5.0 \
+                      selenium>=4.15.0 \
+                      pandas>=2.0.0 \
+                      beautifulsoup4>=4.12.0 \
+                      requests>=2.31.0 \
+                      lxml>=4.9.0 \
+                      fake-useragent>=1.4.0 \
+                      python-dotenv>=1.0.0 \
+                      retrying>=1.3.0 \
+                      tenacity>=8.2.0
 
-      # --- 執行爬蟲（自動重試 3 次） ---
-      - name: Run Crawler
-        timeout-minutes: 20
+      - name: Create Directories
         run: |
-          for i in 1 2 3; do
-            echo "▶ Attempt $i/3"
-            python scraper.py && break || sleep 5
-          done
+          mkdir -p ${{ env.DATA_DIR }}/raw
+          mkdir -p ${{ env.DATA_DIR }}/processed
+          mkdir -p logs
+          mkdir -p backups
 
-      # --- 自動 Commit & Push ---
-      - name: Commit and Push Data
+      - name: Setup Virtual Display (Headless)
+        run: |
+          export DISPLAY=:99
+          Xvfb :99 -screen 0 1920x1080x24 > /dev/null 2>&1 &
+          echo "DISPLAY=:99" >> $GITHUB_ENV
+
+      - name: Run Enhanced Crawler
+        id: crawl
+        timeout-minutes: 25
+        env:
+          FORUM: ${{ matrix.forum }}
+          PAGES: ${{ github.event.inputs.pages || '5' }}
+          HEADLESS: 'true'
+          RETRY_COUNT: '3'
+          DELAY_BETWEEN_REQUESTS: '2'
+        run: |
+          echo "開始爬取 Dcard $FORUM 看板，共 $PAGES 頁"
+          python scripts/enhanced_crawler.py \
+            --forum $FORUM \
+            --pages $PAGES \
+            --headless $HEADLESS \
+            --retry $RETRY_COUNT \
+            --delay $DELAY_BETWEEN_REQUESTS \
+            --output-dir $DATA_DIR \
+            --log-level $LOG_LEVEL
+        continue-on-error: true
+
+      - name: Backup Previous Data
+        if: steps.crawl.outcome == 'success'
+        run: |
+          timestamp=$(date +%Y%m%d_%H%M%S)
+          if [ -d "${{ env.DATA_DIR }}" ]; then
+            tar -czf backups/dcard_data_$timestamp.tar.gz ${{ env.DATA_DIR }}
+            echo "資料已備份至 backups/dcard_data_$timestamp.tar.gz"
+          fi
+
+      - name: Process and Validate Data
+        if: steps.crawl.outcome == 'success'
+        run: |
+          python scripts/data_processor.py \
+            --input-dir ${{ env.DATA_DIR }}/raw \
+            --output-dir ${{ env.DATA_DIR }}/processed \
+            --validate
+
+      - name: Create Summary Report
+        if: steps.crawl.outcome == 'success'
+        run: |
+          python scripts/generate_report.py \
+            --data-dir ${{ env.DATA_DIR }} \
+            --output report.md
+
+      - name: Upload Data Artifacts
+        if: steps.crawl.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dcard-data-${{ matrix.forum }}-${{ github.run_id }}
+          path: |
+            ${{ env.DATA_DIR }}/
+            report.md
+            logs/
+          retention-days: 7
+
+      - name: Commit and Push Results
+        if: steps.crawl.outcome == 'success'
+        run: |
+          git config --global user.name "GitHub Actions Bot"
+          git config --global user.email "actions@github.com"
+          git add ${{ env.DATA_DIR }} report.md logs/
+          if git diff-index --quiet HEAD --; then
+            echo "沒有新的資料變更"
+          else
+            git commit -m "Auto-update: Dcard ${{ matrix.forum }} 看板資料 $(date +'%Y-%m-%d %H:%M') [skip ci]"
+            git push
+            echo "資料已成功提交"
+          fi
+
+      - name: Notify on Failure
+        if: steps.crawl.outcome == 'failure'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          text: 'Dcard 爬蟲執行失敗: ${{ matrix.forum }} 看板'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Cleanup
         if: always()
         run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "actions@github.com"
-          if [ -d "csv" ] && [ "$(ls -A csv)" ]; then
-            git add csv
-            git commit -m "Auto-update Dcard data [skip ci]" || echo "No changes"
-            git push
-          else
-            echo "No new files. Skipping commit."
-          fi
+          pkill -f Xvfb || true
+          rm -rf /tmp/.X99-lock
