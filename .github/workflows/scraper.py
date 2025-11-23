@@ -1,3 +1,11 @@
+import undetected_chromedriver as uc
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import pandas as pd
+import time
+import random
+import os
 # 設定要爬的看板 (檔名只寫名稱，路徑會由程式自動處理)
 BOARDS = {
     "travel": "旅遊.csv",
