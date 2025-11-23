@@ -1,16 +1,15 @@
 name: Dcard Crawler Daily (Selenium)
 
 on:
-  workflow_dispatch:      # 允許手動點擊按鈕執行
+  workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
+    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    
     permissions:
-      contents: write     # 給予權限讓機器人可以 git push CSV 回去
+      contents: write
 
     steps:
       - name: Checkout code
@@ -21,6 +20,12 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Cache Python dependencies  # 新增快取步驟
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('.github/workflows/requirements.txt') }}
+
       - name: Install Chrome
         run: |
           sudo apt-get update
@@ -28,27 +33,23 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # 修正: 新增 --upgrade 確保套件能正確安裝
-          pip install --upgrade -r .github/workflows/requirements.txt
+          pip install --upgrade pip
+          pip install undetected_chromedriver selenium  # 明確安裝核心套件
+          pip install -r .github/workflows/requirements.txt
 
       - name: Run Crawler
-        # 強制 10 分鐘超時，避免卡住無限等待
         timeout-minutes: 10
         run: python .github/workflows/scraper.py
 
-      - name: Commit and Push Data (修正 Git 矛盾錯誤)
+      - name: Commit and Push Data
         if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          
-          # 檢查 csv 資料夾是否存在且非空
           if [ -d "csv" ] && [ "$(ls -A csv)" ]; then
-            echo "Found files in csv directory. Starting commit."
-            # ***** 關鍵修正點: 使用 git add 整個資料夾 'csv' 來安全提交 *****
             git add csv
-            git commit -m "Auto-update Dcard Selenium data [skip ci]" || echo "No changes to commit"
+            git commit -m "Auto-update Dcard data [skip ci]" || echo "No changes"
             git push
           else
-            echo "No new files found in csv directory or directory is missing/empty. Skipping commit."
+            echo "No new files. Skipping commit."
           fi
