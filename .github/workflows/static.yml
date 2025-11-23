@@ -1,65 +1,54 @@
-name: Dcard Crawler Daily
+name: Dcard Crawler Daily (Selenium)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:      # 允許手動點擊按鈕執行
   schedule:
-    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
+    - cron: '0 16 * * *'  # 每天台灣時間半夜 12 點自動跑 (UTC 16:00)
 
 jobs:
   scrape:
     runs-on: ubuntu-latest
     
     permissions:
-      contents: write
+      contents: write     # 給予權限讓機器人可以 git push CSV 回去
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
-        # 修正重點：直接指定路徑到 .github/workflows/requirements.txt
+      - name: Install Chrome
         run: |
-          python -m pip install --upgrade pip
-          
-          # 設定正確的檔案路徑變數
-          REQUIRE_FILE=".github/workflows/requirements.txt"
-          
-          if [ -f "$REQUIRE_FILE" ]; then
-            echo "📦 Found requirements file at $REQUIRE_FILE"
-            pip install -r "$REQUIRE_FILE"
-          else
-            echo "⚠️ 找不到 $REQUIRE_FILE，改為安裝預設套件"
-            pip install requests pandas cloudscraper
-          fi
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install dependencies
+        run: |
+          # 修正: 新增 --upgrade 確保套件能正確安裝
+          pip install --upgrade -r .github/workflows/requirements.txt
 
       - name: Run Crawler
-        # 修正重點：執行 Python 腳本時需加上路徑
+        # 強制 10 分鐘超時，避免卡住無限等待
+        timeout-minutes: 10
         run: python .github/workflows/scraper.py
-        timeout-minutes: 15
 
-      - name: Commit and Push Data
-        if: always()  # 即使爬蟲失敗也嘗試執行這步(看是否有部分資料)
+      - name: Commit and Push Data (修正 Git 矛盾錯誤)
+        if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-
-          # 確保 csv 資料夾存在 (假設你的程式是輸出到 root 下的 csv 資料夾)
-          if [ -d "csv" ]; then
-            git add csv/*.csv
-            
-            # 檢查是否有變更，有變更才 Commit，避免報錯
-            if git diff --staged --quiet; then
-              echo "⚠️ 沒有資料變更，跳過 Commit"
-            else
-              git commit -m "Auto-update data [skip ci]"
-              git push
-              echo "✅ 資料推送成功"
-            fi
+          
+          # 檢查 csv 資料夾是否存在且非空
+          if [ -d "csv" ] && [ "$(ls -A csv)" ]; then
+            echo "Found files in csv directory. Starting commit."
+            # ***** 關鍵修正點: 使用 git add 整個資料夾 'csv' 來安全提交 *****
+            git add csv
+            git commit -m "Auto-update Dcard Selenium data [skip ci]" || echo "No changes to commit"
+            git push
           else
-            echo "💤 找不到 csv 資料夾，跳過推送"
+            echo "No new files found in csv directory or directory is missing/empty. Skipping commit."
           fi
