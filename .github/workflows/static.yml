@@ -3,7 +3,7 @@ name: Dcard Crawler Daily (Selenium)
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
+    - cron: '0 16 * * *'  # 每天 UTC 16:00 → 台灣 00:00
 
 jobs:
   scrape:
@@ -12,35 +12,51 @@ jobs:
       contents: write
 
     steps:
+      # --- 檢出程式碼 ---
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up Python
+      # --- 安裝 Python ---
+      - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
 
-      - name: Cache Python dependencies  # 新增快取步驟
+      # --- pip 快取（大幅提升速度） ---
+      - name: Cache pip packages
         uses: actions/cache@v3
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('.github/workflows/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
 
-      - name: Install Chrome
+      # --- 安裝最新版 Google Chrome (官方 source) ---
+      - name: Install Google Chrome
         run: |
           sudo apt-get update
+          sudo apt-get install -y wget gnupg
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
           sudo apt-get install -y google-chrome-stable
+          google-chrome --version
 
-      - name: Install dependencies
+      # --- 安裝 Python 套件 ---
+      - name: Install Dependencies
         run: |
           pip install --upgrade pip
-          pip install undetected_chromedriver selenium  # 明確安裝核心套件
-          pip install -r .github/workflows/requirements.txt
+          pip install --upgrade undetected-chromedriver selenium webdriver-manager
+          pip install -r requirements.txt
 
+      # --- 執行爬蟲（自動重試 3 次） ---
       - name: Run Crawler
-        timeout-minutes: 10
-        run: python .github/workflows/scraper.py
+        timeout-minutes: 20
+        run: |
+          for i in 1 2 3; do
+            echo "▶ Attempt $i/3"
+            python scraper.py && break || sleep 5
+          done
 
+      # --- 自動 Commit & Push ---
       - name: Commit and Push Data
         if: always()
         run: |
