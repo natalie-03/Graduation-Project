@@ -3,7 +3,7 @@ name: Dcard Crawler Daily
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 16 * * *'
+    - cron: '0 16 * * *'  # 每天 UTC 16:00 (台灣時間 00:00)
 
 jobs:
   scrape:
@@ -21,37 +21,44 @@ jobs:
         with:
           python-version: '3.10'
 
-      # 方案 B：明確指定使用 .github/workflows 裡的 requirements.txt
       - name: Install dependencies
+        # 修正重點：直接指定路徑到 .github/workflows/requirements.txt
         run: |
           python -m pip install --upgrade pip
-
+          
           REQUIRE_FILE=".github/workflows/requirements.txt"
-
+          
           if [ -f "$REQUIRE_FILE" ]; then
-            echo "📦 Installing dependencies from $REQUIRE_FILE"
+            echo "📦 Found requirements file at $REQUIRE_FILE"
             pip install -r "$REQUIRE_FILE"
           else
-            echo "⚠️ 找不到 requirements.txt，改用預設套件"
+            echo "⚠️ 找不到 $REQUIRE_FILE，改為安裝預設套件"
             pip install requests pandas cloudscraper
           fi
 
       - name: Run Crawler
+        # 修正重點：執行時需加上路徑
         run: python .github/workflows/scraper.py
         timeout-minutes: 15
 
       - name: Commit and Push Data
-        if: always()
+        if: always()  # 即使爬蟲失敗也嘗試執行這步(看是否有部分資料)
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
 
-          mkdir -p csv
-
-          if ls csv/*.csv 1> /dev/null 2>&1; then
+          # 確保 csv 資料夾存在 (假設你的程式是輸出到 root 下的 csv 資料夾)
+          if [ -d "csv" ]; then
             git add csv/*.csv
-            git commit -m "Auto-update data [skip ci]" || echo "⚠️ 沒有變更"
-            git push
+            
+            # 檢查是否有變更，有變更才 Commit
+            if git diff --staged --quiet; then
+              echo "⚠️ 沒有資料變更，跳過 Commit"
+            else
+              git commit -m "Auto-update data [skip ci]"
+              git push
+              echo "✅ 資料推送成功"
+            fi
           else
-            echo "💤 無 CSV 產生，跳過推送"
+            echo "💤 找不到 csv 資料夾，跳過推送"
           fi
