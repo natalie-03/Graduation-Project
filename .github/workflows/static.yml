@@ -26,6 +26,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           
+          # 設定正確的檔案路徑變數
           REQUIRE_FILE=".github/workflows/requirements.txt"
           
           if [ -f "$REQUIRE_FILE" ]; then
@@ -37,7 +38,7 @@ jobs:
           fi
 
       - name: Run Crawler
-        # 修正重點：執行時需加上路徑
+        # 修正重點：執行 Python 腳本時需加上路徑
         run: python .github/workflows/scraper.py
         timeout-minutes: 15
 
@@ -51,7 +52,7 @@ jobs:
           if [ -d "csv" ]; then
             git add csv/*.csv
             
-            # 檢查是否有變更，有變更才 Commit
+            # 檢查是否有變更，有變更才 Commit，避免報錯
             if git diff --staged --quiet; then
               echo "⚠️ 沒有資料變更，跳過 Commit"
             else
