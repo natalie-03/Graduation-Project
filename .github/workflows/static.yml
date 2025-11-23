@@ -13,44 +13,45 @@ jobs:
       contents: write
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Setup Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      # Step 3: Install dependencies
+      # 方案 B：明確指定使用 .github/workflows 裡的 requirements.txt
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          
-          # 如果專案根目錄有 requirements.txt 優先用它
-          if [ -f requirements.txt ]; then
-            echo "📦 Installing from requirements.txt"
-            pip install -r requirements.txt
+
+          REQUIRE_FILE=".github/workflows/requirements.txt"
+
+          if [ -f "$REQUIRE_FILE" ]; then
+            echo "📦 Installing dependencies from $REQUIRE_FILE"
+            pip install -r "$REQUIRE_FILE"
           else
             echo "⚠️ 找不到 requirements.txt，改用預設套件"
             pip install requests pandas cloudscraper
           fi
 
-      # Step 4: Run crawler python
       - name: Run Crawler
-        run: python scraper.py
+        run: python .github/workflows/scraper.py
         timeout-minutes: 15
 
-      # Step 5: Commit and Push Data
       - name: Commit and Push Data
-        if: always() 
+        if: always()
         run: |
           git config --global user.name "GitHub Action Bot"
           git config --global user.email "actions@github.com"
-          
+
           mkdir -p csv
 
-          # 如果有 csv 才提交
           if ls csv/*.csv 1> /dev/null 2>&1; then
-            echo "✅ 發現 CSV 檔
+            git add csv/*.csv
+            git commit -m "Auto-update data [skip ci]" || echo "⚠️ 沒有變更"
+            git push
+          else
+            echo "💤 無 CSV 產生，跳過推送"
+          fi
