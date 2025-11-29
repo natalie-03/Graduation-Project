@@ -2,198 +2,184 @@ import undetected_chromedriver as uc
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException
 import pandas as pd
+import time
 import random
 import os
-import gc
-import time
 
+# 設定要爬的看板 (檔名只寫名稱，路徑會由程式自動處理)
 BOARDS = {
     "travel": "旅遊.csv",
+    "food": "美食.csv",
+    "job": "工作.csv",
+    "graduate_school": "研究所.csv",
+    "exam": "考試.csv"
 }
 
-def init_driver():
-    """初始化驅動程式 - 針對 GitHub Actions 強力抗偵測"""
-    opts = uc.ChromeOptions()
-    
-    # === 關鍵設定 ===
-    opts.add_argument("--headless=new") 
-    opts.add_argument("--window-size=1920,1080")
-    
-    # 偽裝成一般使用者
-    opts.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
-    opts.add_argument("--disable-blink-features=AutomationControlled")
-    opts.add_argument("--no-sandbox")
-    opts.add_argument("--disable-dev-shm-usage")
-    opts.add_argument("--disable-gpu")
-    
-    try:
-        driver = uc.Chrome(options=opts)
-        driver.set_page_load_timeout(60) # 延長超時時間
-        return driver
-    except Exception as e:
-        print(f"驅動程式初始化失敗: {e}")
-        return None
+TARGET_COUNT = 10000  # 目標爬取數量
+OUTPUT_DIR = "csv"    # 設定輸出的資料夾名稱
+BATCH_SIZE = 5        # 每幾篇存檔一次
 
-def collect_links(driver, board_url, max_scroll=200):
-    print(f"開始收集 {board_url} 的文章連結...")
+def get_driver():
+    """設定適用於 GitHub Actions 的 Chrome"""
+    options = uc.ChromeOptions()
+    # 關鍵：啟用無頭模式 (Headless)
+    options.add_argument("--headless=new") 
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
     
-    try:
-        driver.get(board_url)
-        
-        # === 診斷步驟 (關鍵) ===
-        print("等待頁面載入 (10秒)...")
-        time.sleep(10) # 故意等久一點，讓 Cloudflare 驗證跑完
-        
-        page_title = driver.title
-        print(f"🔍 目前網頁標題: {page_title}")
-        
-        # 檢查是否被擋
-        if "Just a moment" in page_title or "Access denied" in page_title or "Attention Required" in page_title:
-            print("⚠️ 警告: 被 Cloudflare 攔截！GitHub Actions IP 可能被封鎖。")
-            print("嘗試印出頁面原始碼前 500 字元供除錯:")
-            print(driver.page_source[:500])
-            return []
+    # 模擬真實使用者
+    options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
-        links = set()
-        last_count = 0
-        no_new_count = 0
-        
-        # 嘗試尋找主要內容容器，確保頁面真的載入了
-        try:
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.TAG_NAME, "body"))
-            )
-        except:
-            print("等待 Body 元素超時")
+    print("正在啟動 Headless Chrome...")
+    driver = uc.Chrome(options=options, version_main=None)
+    return driver
 
-        for i in range(max_scroll):
-            # 滾動
-            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-            time.sleep(random.uniform(2, 3)) # 滾動慢一點
-            
-            # 收集連結 (使用更寬鬆的選擇器)
-            found_elements = driver.find_elements(By.CSS_SELECTOR, 'a[href*="/p/"]')
-            
-            if not found_elements:
-                # 再次確認是否還有內容
-                print(f"  第 {i+1} 次滾動: 未發現連結，頁面原始碼長度: {len(driver.page_source)}")
-            
-            for article in found_elements[-30:]:
-                try:
-                    href = article.get_attribute("href")
-                    if href and "/p/" in href and href not in links:
-                        links.add(href)
-                except:
-                    continue
-            
-            # 檢查進度
-            current_count = len(links)
-            if current_count == last_count:
-                no_new_count += 1
-                if no_new_count >= 5: # 降低容忍次數，早點結束
-                    print(f"  已無新文章，停止滾動。共收集 {len(links)} 篇")
-                    break
-            else:
-                no_new_count = 0
-                last_count = current_count
-                print(f"  已滾動 {i+1} 次，目前收集 {len(links)} 篇文章")
-            
-            if (i + 1) % 50 == 0:
-                driver.execute_script("window.stop();")
-                time.sleep(1)
-                
-        return list(links)[:10000]
+def crawl_board(driver, board, filename):
+    # 組合完整的檔案路徑： csv/美食.csv
+    csv_path = os.path.join(OUTPUT_DIR, filename)
     
-    except Exception as e:
-        print(f"收集連結時發生錯誤: {e}")
-        return []
-
-def parse_article(driver, url):
+    print(f"🚀 開始爬取：{board} (儲存至 {csv_path})")
+    url = f"https://www.dcard.tw/f/{board}?latest=true"
+    
     try:
         driver.get(url)
-        time.sleep(random.uniform(2, 4))
-        
-        title = "無標題"
-        content = ""
-        comments = ""
-        
-        try:
-            title = driver.find_element(By.TAG_NAME, "h1").text.strip()
-        except:
-            pass
-        
-        try:
-            content = driver.find_element(By.TAG_NAME, "article").text.strip()
-        except:
-            pass
-            
-        try:
-            comment_elems = driver.find_elements(By.CSS_SELECTOR, '.comment, [data-testid="comment"]')
-            comments = " || ".join([c.text.strip() for c in comment_elems[:10] if c.text.strip()])
-        except:
-            pass
-            
-        return [title, content, comments, url]
-    except:
-        return ["解析失敗", "", "", url]
-
-def save_batch_data(board_name, batch_data, batch_num):
-    if not batch_data: return
-    csv_name = BOARDS[board_name]
-    df = pd.DataFrame(batch_data, columns=["title", "content", "comments", "link"])
-    file_exists = os.path.exists(csv_name)
-    try:
-        df.to_csv(csv_name, mode='a', header=not file_exists, index=False, encoding='utf-8-sig')
-        print(f"  批次 {batch_num} 已儲存 {len(batch_data)} 篇")
+        time.sleep(5) # 等待頁面載入
     except Exception as e:
-        print(f"儲存失敗: {e}")
-    del df
-    gc.collect()
-
-def process_board(driver, board_name):
-    print(f"\n=== 開始爬取 {board_name} 版 ===")
-    url = f"https://www.dcard.tw/f/{board_name}"
-    links = collect_links(driver, url)
-    
-    if not links:
-        print(f"❌ 無法收集到 {board_name} 的文章連結")
+        print(f"無法載入頁面 {url}: {e}")
         return
+
+    data = []
+    collected_urls = set()
     
-    print(f"找到 {len(links)} 篇文章，開始解析...")
-    batch_data = []
-    batch_num = 1
+    # 1. 讀取舊資料避免重複 (斷點續傳)
+    if os.path.exists(csv_path):
+        try:
+            old_df = pd.read_csv(csv_path)
+            if "link" in old_df.columns:
+                collected_urls = set(old_df["link"].unique())
+            print(f"  已讀取現有資料 {len(collected_urls)} 筆")
+        except:
+            pass
+
+    # --- 階段一：收集連結 ---
+    print("  正在收集文章連結...")
+    scroll_attempts = 0
+    last_height = driver.execute_script("return document.body.scrollHeight")
     
-    for i, link in enumerate(links, 1):
-        data = parse_article(driver, link)
-        batch_data.append(data)
-        print(f"  已解析 {i}/{len(links)}: {data[0][:20]}")
+    # 收集連結迴圈
+    while len(data) < TARGET_COUNT and scroll_attempts < 100:
+        elems = driver.find_elements(By.CSS_SELECTOR, 'a[href*="/p/"]')
         
-        if len(batch_data) >= 10:
-            save_batch_data(board_name, batch_data, batch_num)
-            batch_data = []
-            batch_num += 1
-            time.sleep(2)
+        new_found = 0
+        for elem in elems:
+            try:
+                link = elem.get_attribute('href')
+                # 確保連結存在、未重複、且確實是文章連結
+                if link and "/p/" in link and link not in collected_urls:
+                    collected_urls.add(link)
+                    data.append({"title": "待解析", "link": link}) # 標題稍後再抓比較準
+                    new_found += 1
+            except:
+                continue
+        
+        print(f"\r  目前已收集 {len(data)} 篇新文章連結...", end="")
+        
+        # 滾動邏輯
+        driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+        time.sleep(random.uniform(1.5, 3))
+        
+        new_height = driver.execute_script("return document.body.scrollHeight")
+        if new_height == last_height:
+            scroll_attempts += 1
+        else:
+            scroll_attempts = 0
+            last_height = new_height
             
-    if batch_data:
-        save_batch_data(board_name, batch_data, batch_num)
+    print(f"\n  連結收集完成，準備爬取內容。")
+
+    # --- 階段二：進入內文爬取 ---
+    results = []
+    for i, item in enumerate(data):
+        # 雙重檢查目標數
+        if i >= TARGET_COUNT: break
+        
+        try:
+            driver.get(item['link'])
+            time.sleep(random.uniform(2, 4)) # 隨機休息
+            
+            # 抓標題
+            try:
+                h1 = driver.find_element(By.TAG_NAME, "h1")
+                item['title'] = h1.text
+            except:
+                item['title'] = "無標題"
+            
+            # 抓內文
+            try:
+                article = driver.find_element(By.TAG_NAME, "article")
+                item['content'] = article.text
+            except:
+                item['content'] = "無法讀取內文"
+
+            # 抓留言
+            comments = []
+            try:
+                cmt_blocks = driver.find_elements(By.CSS_SELECTOR, '[data-testid="comment-content"]')
+                for cb in cmt_blocks[:10]:
+                    comments.append(cb.text.replace("\n", " "))
+            except:
+                pass
+            item['comments'] = " || ".join(comments)
+            
+            results.append(item)
+            print(f"  [{i+1}/{len(data)}] {item['title'][:15]}...")
+
+            # === 關鍵修改：每 5 篇存一次 ===
+            if len(results) >= BATCH_SIZE:
+                save_csv(results, csv_path)
+                results = [] # 清空暫存
+
+        except Exception as e:
+            print(f"  ❌ 錯誤: {e}")
+            continue
+
+    # 存最後一批
+    if results:
+        save_csv(results, csv_path)
+
+def save_csv(new_rows, filepath):
+    """儲存 CSV 的函數"""
+    df = pd.DataFrame(new_rows)
+    # 如果檔案不存在就寫入 Header，存在就 Append
+    header = not os.path.exists(filepath)
+    
+    try:
+        df.to_csv(filepath, mode='a', header=header, index=False, encoding='utf-8-sig')
+        print(f"  💾 已儲存 {len(new_rows)} 筆資料到 {filepath}")
+    except Exception as e:
+        print(f"  ❌ 存檔失敗: {e}")
 
 def main():
-    print("正在初始化 Chrome Driver...")
-    driver = init_driver()
-    if not driver: return
-    
+    # 1. 確保 csv 資料夾存在
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
+        print(f"📁 已建立資料夾: {OUTPUT_DIR}")
+
+    driver = get_driver()
     try:
-        for board_name in BOARDS.keys():
-            process_board(driver, board_name)
-            time.sleep(1)
-        print("\n🎉 所有看板爬取完成！")
+        for board, filename in BOARDS.items():
+            crawl_board(driver, board, filename)
+            time.sleep(3) # 看板間稍微休息
     except Exception as e:
-        print(f"❌ 錯誤: {e}")
+        print(f"發生全域錯誤: {e}")
     finally:
-        driver.quit()
-        print("🔚 瀏覽器已關閉")
+        if driver:
+            driver.quit()
 
 if __name__ == "__main__":
     main()
+
+
