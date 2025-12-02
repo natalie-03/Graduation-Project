@@ -105,6 +105,39 @@
             border-color: currentColor;
             border-right-color: transparent;
         }
+
+        .preparation-card {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.1), rgba(123, 44, 191, 0.1));
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .preparation-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.2);
+        }
+        
+        .preparation-icon {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .preparation-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .preparation-desc {
+            color: #cbd5e1;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -120,9 +153,11 @@
         <h1 class="page-title">考試版數據分析平台</h1>
 
         <div class="row">
+            <!-- 左側主要內容區 -->
             <div class="col-lg-8">
+                <!-- 文字雲區塊 -->
                 <div class="tech-card p-4 mb-4">
-                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲</h4>
+                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲 </h4>
                     <div class="wordcloud-container">
                         <canvas id="wordCloud"></canvas>
                     </div>
@@ -132,11 +167,24 @@
                         </button>
                     </div>
                 </div>
+
+                <!-- 新增：考試準備區 -->
+                <div class="tech-card p-4 mb-4">
+                    <h4 class="mb-4 text-white"><i class="fas fa-graduation-cap me-2"></i>考試準備區 </h4>
+                    <div id="preparationContainer" class="row">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary mb-2"></div>
+                            <p>載入考試準備資料中...</p>
+                        </div>
+                    </div>
+                </div>
             </div>
 
+            <!-- 右側邊欄區 -->
             <div class="col-lg-4">
+                <!-- 考試排名區塊 -->
                 <div class="tech-card p-4 mb-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名</h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名 (使用 try.js 資料)</h5>
                     <div id="liveRanking">
                         <div class="text-center py-4">
                             <div class="spinner-border text-primary mb-2"></div>
@@ -145,10 +193,15 @@
                     </div>
                 </div>
 
+                <!-- 熱門標籤區塊 -->
                 <div class="tech-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題</h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題 (使用 try.js 資料)</h5>
                     <div id="hotTags" class="d-flex flex-wrap">
+                        <div class="text-center py-3 w-100">
+                            <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
+                            <small>載入中...</small>
                         </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -156,26 +209,32 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- 引入外部 JavaScript 檔案 -->
     <script src="./js/try.js"></script>
+    <script src="./js/c.js"></script>
 
     <script>
-        // 考試數據 (僅用於文字雲和標籤，排行榜已移除備用資料)
-        const examData = {
-            topics: [
-                { name: "多益", count: 150 }, { name: "托福", count: 120 },
-                { name: "雅思", count: 100 }, { name: "轉學考", count: 80 },
-                { name: "國考", count: 70 }, { name: "研究所", count: 60 },
-                { name: "學測", count: 50 }, { name: "指考", count: 40 },
-                { name: "公職", count: 35 }, { name: "證照", count: 30 },
-                { name: "考古題", count: 90 }, { name: "微積分", count: 75 }
-            ],
-            // 備用 exams 資料已移除，排行榜將嚴格依賴 try.js
-        };
-
-        // 初始化文字雲
+        // 初始化文字雲 (使用 try.js 的資料)
         function createWordCloud() {
-            const topics = examData.topics;
-            const wordCloudData = topics.map(topic => [topic.name, topic.count]);
+            let wordCloudData = [];
+            
+            // 優先使用 try.js 中的資料
+            if (typeof window.tryWordCloudData !== 'undefined' && Array.isArray(window.tryWordCloudData)) {
+                wordCloudData = window.tryWordCloudData.map(item => [item.name, item.count]);
+            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                // 如果沒有專門的文字雲資料，使用排行榜資料
+                wordCloudData = window.tryRankingData.map(item => [item.name, item.count]);
+            } else {
+                // 如果都沒有資料，顯示錯誤
+                const canvas = document.getElementById('wordCloud');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#9d4edd';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('無可用資料，請確認 try.js 是否正確載入', canvas.width/2, canvas.height/2);
+                return;
+            }
 
             const canvas = document.getElementById('wordCloud');
             if (!canvas) return;
@@ -206,26 +265,26 @@
             }
         }
 
-        // 初始化排名 (已修改：嚴格使用外部資料，無備用)
+        // 初始化排名 (使用 try.js 的資料)
         function initializeLiveRanking() {
             const container = document.getElementById('liveRanking');
             
-            // 檢查 window.tryRankingData 是否存在 (必須由 try.js 定義)
+            // 檢查 window.tryRankingData 是否存在
             let sourceData = [];
 
             if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
                 // 外部資料成功載入
                 sourceData = window.tryRankingData;
             } else {
-                // 外部資料載入失敗，顯示錯誤提示 (無備用資料)
+                // 外部資料載入失敗
                 container.innerHTML = `
                     <div class="text-center py-4 text-warning">
                         <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
                         <p class="mb-1">外部資料載入失敗</p>
-                        <small>請確保 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
+                        <small>請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
                     </div>
                 `;
-                return; // 終止函式
+                return;
             }
 
             // 排序數據 (由多到少)
@@ -242,22 +301,80 @@
             `).join('');
         }
 
-        // 初始化熱門標籤
+        // 初始化熱門標籤 (使用 try.js 的資料)
         function initializeHotTags() {
-            const tags = examData.topics.slice(0, 10); // 取前10個
             const container = document.getElementById('hotTags');
             
-            container.innerHTML = tags.map(topic => 
-                `<span class="tech-tag text-white-50">#${topic.name}</span>`
+            // 優先使用 try.js 中的標籤資料
+            let tags = [];
+            
+            if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
+                tags = window.tryHotTagsData;
+            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                // 如果沒有專門的標籤資料，使用排行榜資料
+                tags = window.tryRankingData.slice(0, 10).map(item => item.name);
+            } else {
+                container.innerHTML = `
+                    <div class="text-warning small">
+                        <i class="fas fa-exclamation-circle me-1"></i> 標籤資料載入失敗
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tags.map(tag => 
+                `<span class="tech-tag text-white-50">#${tag}</span>`
             ).join('');
+        }
+
+        // 初始化考試準備區 (使用 c.js 的資料)
+        function initializeExamPreparation() {
+            const container = document.getElementById('preparationContainer');
+            
+            // 檢查 window.cExamPreparationData 是否存在
+            let preparationData = [];
+
+            if (typeof window.cExamPreparationData !== 'undefined' && Array.isArray(window.cExamPreparationData)) {
+                // 外部資料成功載入
+                preparationData = window.cExamPreparationData;
+            } else {
+                // 外部資料載入失敗
+                container.innerHTML = `
+                    <div class="text-center py-4 text-warning">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="mb-1">考試準備資料載入失敗</p>
+                        <small>請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
+                    </div>
+                `;
+                return;
+            }
+
+            // 生成考試準備卡片
+            container.innerHTML = preparationData.map((item, index) => `
+                <div class="col-md-6 mb-3">
+                    <div class="preparation-card">
+                        <div class="preparation-icon">
+                            <i class="${item.icon || 'fas fa-book'}"></i>
+                        </div>
+                        <h6 class="preparation-title">${item.title}</h6>
+                        <p class="preparation-desc">${item.description}</p>
+                        ${item.link ? `<a href="${item.link}" class="btn-tech btn-sm w-100">查看詳情</a>` : ''}
+                    </div>
+                </div>
+            `).join('');
         }
 
         // 初始化頁面
         document.addEventListener('DOMContentLoaded', function() {
-            createWordCloud();
-            // 延遲初始化排名，讓 try.js 有時間載入 (模擬異步)
-            setTimeout(initializeLiveRanking, 100); 
-            initializeHotTags();
+            // 先載入考試準備區
+            initializeExamPreparation();
+            
+            // 延遲初始化其他元件，確保資料已載入
+            setTimeout(() => {
+                createWordCloud();
+                initializeLiveRanking();
+                initializeHotTags();
+            }, 100);
 
             // 重新生成文字雲按鈕
             document.getElementById('refreshWordCloud').addEventListener('click', function() {
@@ -274,8 +391,8 @@
 
         // 視窗大小變化時重新生成文字雲
         window.addEventListener('resize', () => {
-             clearTimeout(window.resizeTimer);
-             window.resizeTimer = setTimeout(createWordCloud, 200);
+            clearTimeout(window.resizeTimer);
+            window.resizeTimer = setTimeout(createWordCloud, 200);
         });
     </script>
 </body>
