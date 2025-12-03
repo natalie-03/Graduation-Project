@@ -32,7 +32,7 @@
 
         .tech-card {
             background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            border: 1px solid rgba(82, 10, 141, 0.3);
             border-radius: 12px;
             transition: all 0.3s ease;
         }
@@ -111,7 +111,6 @@
             border: 1px solid rgba(157, 78, 221, 0.3);
             border-radius: 10px;
             padding: 1rem;
-            margin-bottom: 1rem;
             transition: all 0.3s ease;
         }
         
@@ -121,22 +120,95 @@
             box-shadow: 0 5px 15px rgba(157, 78, 221, 0.2);
         }
         
-        .preparation-icon {
+        .preparation-icon-box { /* 新增樣式: 讓 icon 和 title 在一行 */
             font-size: 1.5rem;
             color: var(--primary);
             margin-bottom: 0.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
         }
         
+        .preparation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+
         .preparation-title {
             color: white;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0; /* 修正：讓標題靠上 */
+            font-size: 1.1rem;
         }
         
         .preparation-desc {
             color: #cbd5e1;
             font-size: 0.9rem;
             margin-bottom: 1rem;
+            min-height: 40px; /* 確保卡片高度一致 */
+        }
+
+        .btn-prep-action {
+            display: block;
+            background: rgba(157, 78, 221, 0.15);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-prep-action:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* --- 新增：分類過濾器樣式 --- */
+        .category-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+        }
+
+        .category-btn {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(157, 78, 221, 0.3);
+            color: #94a3b8;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .category-btn:hover {
+            color: white;
+            border-color: var(--primary);
+            background: rgba(157, 78, 221, 0.1);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-color: transparent;
+            box-shadow: 0 4px 12px rgba(123, 44, 191, 0.4);
+        }
+        
+        /* 調整卡片網格間距 */
+        .preparation-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem; /* 確保卡片之間有間距 */
         }
     </style>
 </head>
@@ -153,9 +225,7 @@
         <h1 class="page-title">考試版數據分析平台</h1>
 
         <div class="row">
-            <!-- 左側主要內容區 -->
             <div class="col-lg-8">
-                <!-- 文字雲區塊 -->
                 <div class="tech-card p-4 mb-4">
                     <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲 </h4>
                     <div class="wordcloud-container">
@@ -168,11 +238,16 @@
                     </div>
                 </div>
 
-                <!-- 新增：考試準備區 -->
                 <div class="tech-card p-4 mb-4">
-                    <h4 class="mb-4 text-white"><i class="fas fa-graduation-cap me-2"></i>考試準備區 </h4>
-                    <div id="preparationContainer" class="row">
-                        <div class="text-center py-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="text-white m-0"><i class="fas fa-graduation-cap me-2"></i>考試準備區</h4>
+                    </div>
+
+                    <div class="category-filter-container" id="categoryFilters">
+                        </div>
+
+                    <div id="preparationContainer" class="row g-3">
+                        <div class="text-center py-4 w-100">
                             <div class="spinner-border text-primary mb-2"></div>
                             <p>載入考試準備資料中...</p>
                         </div>
@@ -180,11 +255,9 @@
                 </div>
             </div>
 
-            <!-- 右側邊欄區 -->
             <div class="col-lg-4">
-                <!-- 考試排名區塊 -->
                 <div class="tech-card p-4 mb-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名 (使用 try.js 資料)</h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名 </h5>
                     <div id="liveRanking">
                         <div class="text-center py-4">
                             <div class="spinner-border text-primary mb-2"></div>
@@ -193,9 +266,8 @@
                     </div>
                 </div>
 
-                <!-- 熱門標籤區塊 -->
                 <div class="tech-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題 (使用 try.js 資料)</h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題 </h5>
                     <div id="hotTags" class="d-flex flex-wrap">
                         <div class="text-center py-3 w-100">
                             <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
@@ -209,11 +281,144 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- 引入外部 JavaScript 檔案 -->
     <script src="./js/try.js"></script>
     <script src="./js/c.js"></script>
 
     <script>
+        // =================================================================
+        // 考試準備區 (c.js) 邏輯 - 新增分類功能
+        // =================================================================
+
+        // 定義分類映射 (將 c.js 的 exam_type 歸類)
+        const EXAM_CATEGORIES = {
+            'all': { label: '全部顯示', types: [] }, // types 為空代表顯示全部
+            'academic': { 
+                label: '升學/學術', 
+                types: ['研究所', '轉學考', '學測', '統測', '會考'] 
+            },
+            'language': { 
+                label: '語言檢定', 
+                types: ['多益', '托福', '雅思'] 
+            },
+            'career': { 
+                label: '公職/就業', 
+                types: ['公職', '國考', '教師甄試', '律師考試'] 
+            },
+            'other': { 
+                label: '證照/其他', 
+                types: ['證照', '其他'] 
+            }
+        };
+
+        // 獨立出來的渲染函數
+        function renderPreparationItems(data) {
+            const container = document.getElementById('preparationContainer');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5 text-muted">
+                        <i class="fas fa-search mb-2" style="font-size: 2rem;"></i>
+                        <p>此分類目前沒有相關資料</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // 加入簡易動畫 class 'fade-in'
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                container.innerHTML = data.map((item) => `
+                    <div class="col-md-6 col-xl-4">
+                        <div class="preparation-card">
+                            <div class="preparation-header">
+                                <div class="preparation-icon-box">
+                                    <i class="${item.icon || 'fas fa-book'}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="preparation-title">${item.title}</h6>
+                                    <span class="badge bg-secondary bg-opacity-50" style="font-size: 0.7rem;">${item.level || '一般'}</span>
+                                </div>
+                            </div>
+                            <p class="preparation-desc">
+                                ${item.description.length > 45 ? item.description.substring(0, 45) + '...' : item.description}
+                            </p>
+                            <a href="${item.link || '#'}" class="btn-prep-action text-decoration-none text-center">
+                                前往閱讀  <i class="fas fa-arrow-right ms-1 small"></i>
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.style.transition = 'opacity 0.3s ease';
+                container.style.opacity = '1';
+            }, 150); // 微小延遲創造切換感
+        }
+
+        // 處理分類按鈕點擊事件
+        function filterPreparation(categoryKey, event) {
+            const allData = window.cExamPreparationData;
+            
+            // 更新按鈕樣式
+            document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            const targetTypes = EXAM_CATEGORIES[categoryKey].types;
+
+            // 過濾資料
+            let filteredData;
+            if (categoryKey === 'all') {
+                filteredData = allData;
+            } else {
+                // 比對 exam_type 是否在該分類的 types 陣列中
+                filteredData = allData.filter(item => targetTypes.includes(item.exam_type));
+            }
+
+            renderPreparationItems(filteredData);
+        }
+
+        // 初始化考試準備區 (已修改)
+        function initializeExamPreparation() {
+            const container = document.getElementById('preparationContainer');
+            const filterContainer = document.getElementById('categoryFilters');
+            
+            if (typeof window.cExamPreparationData === 'undefined' || !Array.isArray(window.cExamPreparationData)) {
+                // 外部資料載入失敗
+                container.innerHTML = `
+                    <div class="col-12 text-center py-4 text-warning">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                        <p class="mb-1">考試準備資料載入失敗</p>
+                        <small>請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
+                    </div>
+                `;
+                filterContainer.innerHTML = ''; // 清空按鈕區
+                return;
+            }
+
+            const allData = window.cExamPreparationData;
+
+            // 1. 生成分類按鈕
+            const categories = Object.keys(EXAM_CATEGORIES);
+            filterContainer.innerHTML = categories.map(key => `
+                <button class="category-btn ${key === 'all' ? 'active' : ''}" 
+                        onclick="filterPreparation('${key}', event)">
+                    ${EXAM_CATEGORIES[key].label}
+                </button>
+            `).join('');
+
+            // 2. 初始渲染 (顯示全部)
+            renderPreparationItems(allData);
+
+            // 將 filterPreparation 函數掛載到 window 讓 onclick 讀得到
+            window.filterPreparation = filterPreparation;
+        }
+
+        // =================================================================
+        // 原有邏輯 (未修改)
+        // =================================================================
+
         // 初始化文字雲 (使用 try.js 的資料)
         function createWordCloud() {
             let wordCloudData = [];
@@ -327,46 +532,10 @@
             ).join('');
         }
 
-        // 初始化考試準備區 (使用 c.js 的資料)
-        function initializeExamPreparation() {
-            const container = document.getElementById('preparationContainer');
-            
-            // 檢查 window.cExamPreparationData 是否存在
-            let preparationData = [];
-
-            if (typeof window.cExamPreparationData !== 'undefined' && Array.isArray(window.cExamPreparationData)) {
-                // 外部資料成功載入
-                preparationData = window.cExamPreparationData;
-            } else {
-                // 外部資料載入失敗
-                container.innerHTML = `
-                    <div class="text-center py-4 text-warning">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                        <p class="mb-1">考試準備資料載入失敗</p>
-                        <small>請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
-                    </div>
-                `;
-                return;
-            }
-
-            // 生成考試準備卡片
-            container.innerHTML = preparationData.map((item, index) => `
-                <div class="col-md-6 mb-3">
-                    <div class="preparation-card">
-                        <div class="preparation-icon">
-                            <i class="${item.icon || 'fas fa-book'}"></i>
-                        </div>
-                        <h6 class="preparation-title">${item.title}</h6>
-                        <p class="preparation-desc">${item.description}</p>
-                        ${item.link ? `<a href="${item.link}" class="btn-tech btn-sm w-100">查看詳情</a>` : ''}
-                    </div>
-                </div>
-            `).join('');
-        }
 
         // 初始化頁面
         document.addEventListener('DOMContentLoaded', function() {
-            // 先載入考試準備區
+            // 先載入考試準備區 (已更新為支援分類的版本)
             initializeExamPreparation();
             
             // 延遲初始化其他元件，確保資料已載入
