@@ -11,75 +11,110 @@
     
     <style>
         :root {
-            --primary: #9d4edd;
-            --secondary: #7b2cbf;
-            --dark: #0f172a;
-            --light: #1e293b;
-            --text: #e2e8f0;
+            --primary: #0ef0ff;
+            --secondary: #0a8cff;
+            --accent: #9d4edd;
+            --dark: #050510;
+            --darker: #000000;
+            --light: #0f111a;
+            --text: #e8f0ff;
+            --text-secondary: #8a9bb8;
+            --grid-color: rgba(10, 140, 255, 0.1);
+            --neon-glow: 0 0 15px rgba(14, 240, 255, 0.7);
         }
 
         body {
-            background: var(--dark);
+            background: radial-gradient(ellipse at center, #050510 0%, #000000 100%);
             color: var(--text);
             font-family: 'Segoe UI', sans-serif;
             min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 黑色科技感背景效果 */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background-image: 
+                linear-gradient(rgba(10, 140, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 140, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.4;
         }
 
         .navbar-tech {
-            background: rgba(15, 23, 42, 0.9);
-            border-bottom: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(5, 5, 16, 0.95);
+            border-bottom: 1px solid rgba(14, 240, 255, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
 
         .tech-card {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(82, 10, 141, 0.3);
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.8), rgba(10, 11, 20, 0.9));
+            border: 1px solid rgba(14, 240, 255, 0.2);
             border-radius: 12px;
             transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
         .tech-card:hover {
-            transform: translateY(-3px);
+            transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 4px 15px rgba(157, 78, 221, 0.2);
+            box-shadow: var(--neon-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .btn-tech {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             border: none;
-            color: white;
+            color: #000;
             padding: 10px 20px;
             border-radius: 8px;
             transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
         }
 
         .btn-tech:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.3);
+            box-shadow: var(--neon-glow);
+            color: #000;
         }
 
         .wordcloud-container {
             width: 100%;
             height: 400px;
-            background: rgba(30, 41, 59, 0.5);
+            background: rgba(10, 11, 20, 0.7);
             border-radius: 12px;
             padding: 1rem;
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            border: 1px solid rgba(14, 240, 255, 0.3);
             overflow: hidden;
+            backdrop-filter: blur(5px);
         }
 
         .page-title {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-weight: 700;
+            background-clip: text;
+            font-weight: 800;
             margin-bottom: 2rem;
             text-align: center;
-            font-size: 2.5rem;
+            font-size: 2.8rem;
+            letter-spacing: 1px;
         }
 
         .ranking-item {
-            background: rgba(30, 41, 59, 0.7);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.7), rgba(10, 11, 20, 0.8));
+            border: 1px solid rgba(14, 240, 255, 0.2);
             border-radius: 8px;
             padding: 1rem;
             margin-bottom: 0.5rem;
@@ -87,18 +122,28 @@
         }
         
         .ranking-item:hover {
-            transform: translateX(3px);
+            transform: translateX(5px);
             border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(14, 240, 255, 0.2);
         }
 
         .tech-tag {
-            background: rgba(157, 78, 221, 0.15);
-            border: 1px solid rgba(157, 78, 221, 0.4);
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.4);
             border-radius: 16px;
             padding: 0.5rem 1rem;
             margin: 0.25rem;
             font-size: 0.8rem;
             display: inline-block;
+            transition: all 0.3s ease;
+            color: #b8e6ff;
+        }
+
+        .tech-tag:hover {
+            background: rgba(14, 240, 255, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(14, 240, 255, 0.3);
         }
         
         .spinner-border {
@@ -107,20 +152,22 @@
         }
 
         .preparation-card {
-            background: linear-gradient(135deg, rgba(157, 78, 221, 0.1), rgba(123, 44, 191, 0.1));
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: linear-gradient(135deg, rgba(14, 240, 255, 0.05), rgba(10, 140, 255, 0.05));
+            border: 1px solid rgba(14, 240, 255, 0.2);
             border-radius: 10px;
             padding: 1rem;
             transition: all 0.3s ease;
+            height: 100%;
         }
         
         .preparation-card:hover {
-            transform: translateY(-2px);
+            transform: translateY(-5px);
             border-color: var(--primary);
-            box-shadow: 0 5px 15px rgba(157, 78, 221, 0.2);
+            box-shadow: var(--neon-glow), 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(14, 240, 255, 0.1), rgba(10, 140, 255, 0.1));
         }
         
-        .preparation-icon-box { /* 新增樣式: 讓 icon 和 title 在一行 */
+        .preparation-icon-box {
             font-size: 1.5rem;
             color: var(--primary);
             margin-bottom: 0.5rem;
@@ -130,6 +177,9 @@
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            background: rgba(14, 240, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(14, 240, 255, 0.3);
         }
         
         .preparation-header {
@@ -142,77 +192,126 @@
         .preparation-title {
             color: white;
             font-weight: 600;
-            margin-bottom: 0; /* 修正：讓標題靠上 */
+            margin-bottom: 0;
             font-size: 1.1rem;
         }
         
         .preparation-desc {
-            color: #cbd5e1;
+            color: var(--text-secondary);
             font-size: 0.9rem;
             margin-bottom: 1rem;
-            min-height: 40px; /* 確保卡片高度一致 */
+            min-height: 40px;
         }
 
         .btn-prep-action {
             display: block;
-            background: rgba(157, 78, 221, 0.15);
-            border: 1px solid rgba(157, 78, 221, 0.3);
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.3);
             color: var(--primary);
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
             transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 500;
         }
 
         .btn-prep-action:hover {
             background: var(--primary);
-            color: white;
+            color: #000;
             border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(14, 240, 255, 0.5);
         }
 
-        /* --- 新增：分類過濾器樣式 --- */
+        /* 分類過濾器樣式 */
         .category-filter-container {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
             margin-bottom: 20px;
             padding-bottom: 15px;
-            border-bottom: 1px solid rgba(157, 78, 221, 0.2);
+            border-bottom: 1px solid rgba(14, 240, 255, 0.2);
         }
 
         .category-btn {
-            background: rgba(30, 41, 59, 0.6);
-            border: 1px solid rgba(157, 78, 221, 0.3);
-            color: #94a3b8;
+            background: rgba(15, 17, 26, 0.6);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: #8a9bb8;
             padding: 6px 16px;
             border-radius: 20px;
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.3s ease;
+            font-weight: 500;
         }
 
         .category-btn:hover {
             color: white;
             border-color: var(--primary);
-            background: rgba(157, 78, 221, 0.1);
+            background: rgba(14, 240, 255, 0.1);
         }
 
         .category-btn.active {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
+            color: #000;
             border-color: transparent;
-            box-shadow: 0 4px 12px rgba(123, 44, 191, 0.4);
+            box-shadow: var(--neon-glow);
         }
         
         /* 調整卡片網格間距 */
         .preparation-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 1rem; /* 確保卡片之間有間距 */
+            gap: 1rem;
+        }
+
+        /* 返回按鈕樣式調整 */
+        .navbar-tech .btn-tech {
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: var(--primary);
+        }
+
+        .navbar-tech .btn-tech:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* 滑動條樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 11, 20, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .category-filter-container {
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- 背景元素 -->
+    <div class="cyber-grid"></div>
+    
     <nav class="navbar navbar-expand-lg navbar-tech">
         <div class="container">
             <a href="index.html" class="btn-tech btn-sm text-decoration-none">
@@ -222,12 +321,17 @@
     </nav>
 
     <div class="container mt-4">
-        <h1 class="page-title">考試版數據分析平台</h1>
+        <div class="text-center">
+            <h1 class="page-title">考試版數據分析平台</h1>
+            <p class="text-secondary mb-4">
+                利用大數據分析考題趨勢，協助你制定最高效的讀書計畫
+            </p>
+        </div>
 
         <div class="row">
             <div class="col-lg-8">
                 <div class="tech-card p-4 mb-4">
-                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲 </h4>
+                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲</h4>
                     <div class="wordcloud-container">
                         <canvas id="wordCloud"></canvas>
                     </div>
@@ -243,13 +347,12 @@
                         <h4 class="text-white m-0"><i class="fas fa-graduation-cap me-2"></i>考試準備區</h4>
                     </div>
 
-                    <div class="category-filter-container" id="categoryFilters">
-                        </div>
+                    <div class="category-filter-container" id="categoryFilters"></div>
 
                     <div id="preparationContainer" class="row g-3">
                         <div class="text-center py-4 w-100">
                             <div class="spinner-border text-primary mb-2"></div>
-                            <p>載入考試準備資料中...</p>
+                            <p class="text-secondary">載入考試準備資料中...</p>
                         </div>
                     </div>
                 </div>
@@ -257,21 +360,21 @@
 
             <div class="col-lg-4">
                 <div class="tech-card p-4 mb-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名 </h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名</h5>
                     <div id="liveRanking">
                         <div class="text-center py-4">
                             <div class="spinner-border text-primary mb-2"></div>
-                            <p>載入考試排名數據中...</p>
+                            <p class="text-secondary">載入考試排名數據中...</p>
                         </div>
                     </div>
                 </div>
 
                 <div class="tech-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題 </h5>
+                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題</h5>
                     <div id="hotTags" class="d-flex flex-wrap">
                         <div class="text-center py-3 w-100">
                             <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
-                            <small>載入中...</small>
+                            <small class="text-secondary">載入中...</small>
                         </div>
                     </div>
                 </div>
@@ -285,46 +388,41 @@
     <script src="./js/c.js"></script>
 
     <script>
-        // =================================================================
-        // 考試準備區 (c.js) 邏輯 - 新增分類功能
-        // =================================================================
-
-        // 定義分類映射 (將 c.js 的 exam_type 歸類)
+        // 考試準備區分類映射
         const EXAM_CATEGORIES = {
-            'all': { label: '全部顯示', types: [] }, // types 為空代表顯示全部
+            'all': { label: '全部顯示', types: [] },
             'academic': { 
                 label: '升學/學術', 
-                types: ['研究所', '轉學考', '學測', '統測', '會考'] 
+                types: ['研究所', '轉學考', '學測', '統測', '會考']
             },
             'language': { 
                 label: '語言檢定', 
-                types: ['多益', '托福', '雅思'] 
+                types: ['多益', '托福', '雅思']
             },
             'career': { 
                 label: '公職/就業', 
-                types: ['公職', '國考', '教師甄試', '律師考試'] 
+                types: ['公職', '國考', '教師甄試', '律師考試']
             },
             'other': { 
                 label: '證照/其他', 
-                types: ['證照', '其他'] 
+                types: ['證照', '其他']
             }
         };
 
-        // 獨立出來的渲染函數
+        // 渲染考試準備項目
         function renderPreparationItems(data) {
             const container = document.getElementById('preparationContainer');
             
             if (data.length === 0) {
                 container.innerHTML = `
-                    <div class="col-12 text-center py-5 text-muted">
-                        <i class="fas fa-search mb-2" style="font-size: 2rem;"></i>
-                        <p>此分類目前沒有相關資料</p>
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search mb-3" style="font-size: 2rem; color: var(--primary);"></i>
+                        <p class="text-secondary">此分類目前沒有相關資料</p>
                     </div>
                 `;
                 return;
             }
 
-            // 加入簡易動畫 class 'fade-in'
             container.style.opacity = '0';
             
             setTimeout(() => {
@@ -337,7 +435,7 @@
                                 </div>
                                 <div>
                                     <h6 class="preparation-title">${item.title}</h6>
-                                    <span class="badge bg-secondary bg-opacity-50" style="font-size: 0.7rem;">${item.level || '一般'}</span>
+                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50" style="font-size: 0.7rem;">${item.exam_type || '一般'}</span>
                                 </div>
                             </div>
                             <p class="preparation-desc">
@@ -352,55 +450,50 @@
                 
                 container.style.transition = 'opacity 0.3s ease';
                 container.style.opacity = '1';
-            }, 150); // 微小延遲創造切換感
+            }, 150);
         }
 
-        // 處理分類按鈕點擊事件
+        // 處理分類過濾
         function filterPreparation(categoryKey, event) {
             const allData = window.cExamPreparationData;
             
-            // 更新按鈕樣式
             document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => btn.classList.remove('active'));
             if (event && event.target) {
                 event.target.classList.add('active');
             }
 
             const targetTypes = EXAM_CATEGORIES[categoryKey].types;
-
-            // 過濾資料
             let filteredData;
+            
             if (categoryKey === 'all') {
                 filteredData = allData;
             } else {
-                // 比對 exam_type 是否在該分類的 types 陣列中
                 filteredData = allData.filter(item => targetTypes.includes(item.exam_type));
             }
 
             renderPreparationItems(filteredData);
         }
 
-        // 初始化考試準備區 (已修改)
+        // 初始化考試準備區
         function initializeExamPreparation() {
             const container = document.getElementById('preparationContainer');
             const filterContainer = document.getElementById('categoryFilters');
             
             if (typeof window.cExamPreparationData === 'undefined' || !Array.isArray(window.cExamPreparationData)) {
-                // 外部資料載入失敗
                 container.innerHTML = `
-                    <div class="col-12 text-center py-4 text-warning">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                        <p class="mb-1">考試準備資料載入失敗</p>
-                        <small>請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
+                    <div class="col-12 text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                        <p class="text-warning mb-1">考試準備資料載入失敗</p>
+                        <small class="text-secondary">請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
                     </div>
                 `;
-                filterContainer.innerHTML = ''; // 清空按鈕區
+                filterContainer.innerHTML = '';
                 return;
             }
 
             const allData = window.cExamPreparationData;
-
-            // 1. 生成分類按鈕
             const categories = Object.keys(EXAM_CATEGORIES);
+            
             filterContainer.innerHTML = categories.map(key => `
                 <button class="category-btn ${key === 'all' ? 'active' : ''}" 
                         onclick="filterPreparation('${key}', event)">
@@ -408,33 +501,23 @@
                 </button>
             `).join('');
 
-            // 2. 初始渲染 (顯示全部)
             renderPreparationItems(allData);
-
-            // 將 filterPreparation 函數掛載到 window 讓 onclick 讀得到
             window.filterPreparation = filterPreparation;
         }
 
-        // =================================================================
-        // 原有邏輯 (未修改)
-        // =================================================================
-
-        // 初始化文字雲 (使用 try.js 的資料)
+        // 初始化文字雲
         function createWordCloud() {
             let wordCloudData = [];
             
-            // 優先使用 try.js 中的資料
             if (typeof window.tryWordCloudData !== 'undefined' && Array.isArray(window.tryWordCloudData)) {
                 wordCloudData = window.tryWordCloudData.map(item => [item.name, item.count]);
             } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                // 如果沒有專門的文字雲資料，使用排行榜資料
                 wordCloudData = window.tryRankingData.map(item => [item.name, item.count]);
             } else {
-                // 如果都沒有資料，顯示錯誤
                 const canvas = document.getElementById('wordCloud');
                 const ctx = canvas.getContext('2d');
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#9d4edd';
+                ctx.fillStyle = '#0ef0ff';
                 ctx.font = '16px Segoe UI';
                 ctx.textAlign = 'center';
                 ctx.fillText('無可用資料，請確認 try.js 是否正確載入', canvas.width/2, canvas.height/2);
@@ -449,7 +532,6 @@
             canvas.height = container.clientHeight;
 
             if (typeof WordCloud === 'function') {
-                // 清空 canvas 以防重疊
                 canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
                 
                 WordCloud(canvas, {
@@ -458,8 +540,7 @@
                     weightFactor: 1.5,
                     fontFamily: 'Segoe UI, sans-serif',
                     color: function () {
-                        // 使用紫色系顏色
-                        const colors = ['#9d4edd', '#7b2cbf', '#e0aaff', '#c77dff'];
+                        const colors = ['#0ef0ff', '#0a8cff', '#9d4edd', '#00ffcc'];
                         return colors[Math.floor(Math.random() * colors.length)];
                     },
                     backgroundColor: 'transparent',
@@ -470,35 +551,35 @@
             }
         }
 
-        // 初始化排名 (使用 try.js 的資料)
+        // 初始化排名
         function initializeLiveRanking() {
             const container = document.getElementById('liveRanking');
-            
-            // 檢查 window.tryRankingData 是否存在
             let sourceData = [];
 
             if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                // 外部資料成功載入
                 sourceData = window.tryRankingData;
             } else {
-                // 外部資料載入失敗
                 container.innerHTML = `
-                    <div class="text-center py-4 text-warning">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
-                        <p class="mb-1">外部資料載入失敗</p>
-                        <small>請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                        <p class="text-warning mb-1">外部資料載入失敗</p>
+                        <small class="text-secondary">請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
                     </div>
                 `;
                 return;
             }
 
-            // 排序數據 (由多到少)
             const sortedExams = [...sourceData].sort((a, b) => b.count - a.count);
 
             container.innerHTML = sortedExams.map((exam, index) => `
                 <div class="ranking-item d-flex justify-content-between align-items-center">
-                    <div>
-                        <span class="badge bg-primary me-2">${index + 1}</span>
+                    <div class="d-flex align-items-center">
+                        <div class="position-relative me-2">
+                            <span class="badge ${index < 3 ? 'bg-primary' : 'bg-secondary'} bg-opacity-25 ${index < 3 ? 'text-primary' : 'text-secondary'} rounded-circle d-flex align-items-center justify-content-center" 
+                                  style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                ${index + 1}
+                            </span>
+                        </div>
                         <span class="text-white">${exam.name}</span>
                     </div>
                     <span class="text-primary fw-bold">${exam.count}</span>
@@ -506,17 +587,14 @@
             `).join('');
         }
 
-        // 初始化熱門標籤 (使用 try.js 的資料)
+        // 初始化熱門標籤
         function initializeHotTags() {
             const container = document.getElementById('hotTags');
-            
-            // 優先使用 try.js 中的標籤資料
             let tags = [];
             
             if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
                 tags = window.tryHotTagsData;
             } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                // 如果沒有專門的標籤資料，使用排行榜資料
                 tags = window.tryRankingData.slice(0, 10).map(item => item.name);
             } else {
                 container.innerHTML = `
@@ -528,24 +606,661 @@
             }
             
             container.innerHTML = tags.map(tag => 
-                `<span class="tech-tag text-white-50">#${tag}</span>`
+                `<span class="tech-tag">#${tag}</span>`
             ).join('');
         }
 
-
-        // 初始化頁面
+        // 頁面初始化
         document.addEventListener('DOMContentLoaded', function() {
-            // 先載入考試準備區 (已更新為支援分類的版本)
             initializeExamPreparation();
             
-            // 延遲初始化其他元件，確保資料已載入
             setTimeout(() => {
                 createWordCloud();
                 initializeLiveRanking();
                 initializeHotTags();
             }, 100);
 
-            // 重新生成文字雲按鈕
+            document.getElementById('refreshWordCloud').addEventListener('click', function() {
+                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>生成中...';
+                this.disabled = true;
+                
+                setTimeout(() => {
+                    createWordCloud();
+                    this.innerHTML = '<i class="fas fa-sync-alt me-2"></i>重新生成文字雲';
+                    this.disabled = false;
+                }, 500);
+            });
+        });
+
+        // 視窗大小變化時重新生成文字雲
+        window.addEventListener('resize', () => {
+            clearTimeout(window.resizeTimer);
+            window.resizeTimer = setTimeout(createWordCloud, 200);
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考試版數據分析平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #0ef0ff;
+            --secondary: #0a8cff;
+            --accent: #9d4edd;
+            --dark: #050510;
+            --darker: #000000;
+            --light: #0f111a;
+            --text: #e8f0ff;
+            --text-secondary: #8a9bb8;
+            --grid-color: rgba(10, 140, 255, 0.1);
+            --neon-glow: 0 0 15px rgba(14, 240, 255, 0.7);
+        }
+
+        body {
+            background: radial-gradient(ellipse at center, #050510 0%, #000000 100%);
+            color: var(--text);
+            font-family: 'Segoe UI', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* 黑色科技感背景效果 */
+        .cyber-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background-image: 
+                linear-gradient(rgba(10, 140, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(10, 140, 255, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.4;
+        }
+
+        .navbar-tech {
+            background: rgba(5, 5, 16, 0.95);
+            border-bottom: 1px solid rgba(14, 240, 255, 0.4);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .tech-card {
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.8), rgba(10, 11, 20, 0.9));
+            border: 1px solid rgba(14, 240, 255, 0.2);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tech-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--neon-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .btn-tech {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border: none;
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .btn-tech:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--neon-glow);
+            color: #000;
+        }
+
+        .wordcloud-container {
+            width: 100%;
+            height: 400px;
+            background: rgba(10, 11, 20, 0.7);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .page-title {
+            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            margin-bottom: 2rem;
+            text-align: center;
+            font-size: 2.8rem;
+            letter-spacing: 1px;
+        }
+
+        .ranking-item {
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.7), rgba(10, 11, 20, 0.8));
+            border: 1px solid rgba(14, 240, 255, 0.2);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .ranking-item:hover {
+            transform: translateX(5px);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(14, 240, 255, 0.2);
+        }
+
+        .tech-tag {
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.4);
+            border-radius: 16px;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            font-size: 0.8rem;
+            display: inline-block;
+            transition: all 0.3s ease;
+            color: #b8e6ff;
+        }
+
+        .tech-tag:hover {
+            background: rgba(14, 240, 255, 0.2);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(14, 240, 255, 0.3);
+        }
+        
+        .spinner-border {
+            border-color: currentColor;
+            border-right-color: transparent;
+        }
+
+        .preparation-card {
+            background: linear-gradient(135deg, rgba(14, 240, 255, 0.05), rgba(10, 140, 255, 0.05));
+            border: 1px solid rgba(14, 240, 255, 0.2);
+            border-radius: 10px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+            height: 100%;
+        }
+        
+        .preparation-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--primary);
+            box-shadow: var(--neon-glow), 0 5px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, rgba(14, 240, 255, 0.1), rgba(10, 140, 255, 0.1));
+        }
+        
+        .preparation-icon-box {
+            font-size: 1.5rem;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: rgba(14, 240, 255, 0.1);
+            border-radius: 8px;
+            border: 1px solid rgba(14, 240, 255, 0.3);
+        }
+        
+        .preparation-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+
+        .preparation-title {
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0;
+            font-size: 1.1rem;
+        }
+        
+        .preparation-desc {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+            min-height: 40px;
+        }
+
+        .btn-prep-action {
+            display: block;
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: var(--primary);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn-prep-action:hover {
+            background: var(--primary);
+            color: #000;
+            border-color: var(--primary);
+            box-shadow: 0 0 10px rgba(14, 240, 255, 0.5);
+        }
+
+        /* 分類過濾器樣式 */
+        .category-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(14, 240, 255, 0.2);
+        }
+
+        .category-btn {
+            background: rgba(15, 17, 26, 0.6);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: #8a9bb8;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .category-btn:hover {
+            color: white;
+            border-color: var(--primary);
+            background: rgba(14, 240, 255, 0.1);
+        }
+
+        .category-btn.active {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: #000;
+            border-color: transparent;
+            box-shadow: var(--neon-glow);
+        }
+        
+        /* 調整卡片網格間距 */
+        .preparation-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        /* 返回按鈕樣式調整 */
+        .navbar-tech .btn-tech {
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: var(--primary);
+        }
+
+        .navbar-tech .btn-tech:hover {
+            background: var(--primary);
+            color: #000;
+        }
+
+        /* 滑動條樣式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(10, 11, 20, 0.5);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        }
+
+        /* 響應式調整 */
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .category-filter-container {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景元素 -->
+    <div class="cyber-grid"></div>
+    
+    <nav class="navbar navbar-expand-lg navbar-tech">
+        <div class="container">
+            <a href="index.html" class="btn-tech btn-sm text-decoration-none">
+                <i class="fas fa-arrow-left me-1"></i>返回首頁
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="text-center">
+            <h1 class="page-title">考試版數據分析平台</h1>
+            <p class="text-secondary mb-4">
+                利用大數據分析考題趨勢，協助你制定最高效的讀書計畫
+            </p>
+        </div>
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="tech-card p-4 mb-4">
+                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲</h4>
+                    <div class="wordcloud-container">
+                        <canvas id="wordCloud"></canvas>
+                    </div>
+                    <div class="text-center mt-3">
+                        <button class="btn-tech btn-sm" id="refreshWordCloud">
+                            <i class="fas fa-sync-alt me-2"></i>重新生成文字雲
+                        </button>
+                    </div>
+                </div>
+
+                <div class="tech-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="text-white m-0"><i class="fas fa-graduation-cap me-2"></i>考試準備區</h4>
+                    </div>
+
+                    <div class="category-filter-container" id="categoryFilters"></div>
+
+                    <div id="preparationContainer" class="row g-3">
+                        <div class="text-center py-4 w-100">
+                            <div class="spinner-border text-primary mb-2"></div>
+                            <p class="text-secondary">載入考試準備資料中...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="tech-card p-4 mb-4">
+                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名</h5>
+                    <div id="liveRanking">
+                        <div class="text-center py-4">
+                            <div class="spinner-border text-primary mb-2"></div>
+                            <p class="text-secondary">載入考試排名數據中...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tech-card p-4">
+                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題</h5>
+                    <div id="hotTags" class="d-flex flex-wrap">
+                        <div class="text-center py-3 w-100">
+                            <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
+                            <small class="text-secondary">載入中...</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script src="./js/try.js"></script>
+    <script src="./js/c.js"></script>
+
+    <script>
+        // 考試準備區分類映射
+        const EXAM_CATEGORIES = {
+            'all': { label: '全部顯示', types: [] },
+            'academic': { 
+                label: '升學/學術', 
+                types: ['研究所', '轉學考', '學測', '統測', '會考']
+            },
+            'language': { 
+                label: '語言檢定', 
+                types: ['多益', '托福', '雅思']
+            },
+            'career': { 
+                label: '公職/就業', 
+                types: ['公職', '國考', '教師甄試', '律師考試']
+            },
+            'other': { 
+                label: '證照/其他', 
+                types: ['證照', '其他']
+            }
+        };
+
+        // 渲染考試準備項目
+        function renderPreparationItems(data) {
+            const container = document.getElementById('preparationContainer');
+            
+            if (data.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-search mb-3" style="font-size: 2rem; color: var(--primary);"></i>
+                        <p class="text-secondary">此分類目前沒有相關資料</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.style.opacity = '0';
+            
+            setTimeout(() => {
+                container.innerHTML = data.map((item) => `
+                    <div class="col-md-6 col-xl-4">
+                        <div class="preparation-card">
+                            <div class="preparation-header">
+                                <div class="preparation-icon-box">
+                                    <i class="${item.icon || 'fas fa-book'}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="preparation-title">${item.title}</h6>
+                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50" style="font-size: 0.7rem;">${item.exam_type || '一般'}</span>
+                                </div>
+                            </div>
+                            <p class="preparation-desc">
+                                ${item.description.length > 45 ? item.description.substring(0, 45) + '...' : item.description}
+                            </p>
+                            <a href="${item.link || '#'}" class="btn-prep-action text-decoration-none text-center">
+                                前往閱讀  <i class="fas fa-arrow-right ms-1 small"></i>
+                            </a>
+                        </div>
+                    </div>
+                `).join('');
+                
+                container.style.transition = 'opacity 0.3s ease';
+                container.style.opacity = '1';
+            }, 150);
+        }
+
+        // 處理分類過濾
+        function filterPreparation(categoryKey, event) {
+            const allData = window.cExamPreparationData;
+            
+            document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => btn.classList.remove('active'));
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            const targetTypes = EXAM_CATEGORIES[categoryKey].types;
+            let filteredData;
+            
+            if (categoryKey === 'all') {
+                filteredData = allData;
+            } else {
+                filteredData = allData.filter(item => targetTypes.includes(item.exam_type));
+            }
+
+            renderPreparationItems(filteredData);
+        }
+
+        // 初始化考試準備區
+        function initializeExamPreparation() {
+            const container = document.getElementById('preparationContainer');
+            const filterContainer = document.getElementById('categoryFilters');
+            
+            if (typeof window.cExamPreparationData === 'undefined' || !Array.isArray(window.cExamPreparationData)) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                        <p class="text-warning mb-1">考試準備資料載入失敗</p>
+                        <small class="text-secondary">請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
+                    </div>
+                `;
+                filterContainer.innerHTML = '';
+                return;
+            }
+
+            const allData = window.cExamPreparationData;
+            const categories = Object.keys(EXAM_CATEGORIES);
+            
+            filterContainer.innerHTML = categories.map(key => `
+                <button class="category-btn ${key === 'all' ? 'active' : ''}" 
+                        onclick="filterPreparation('${key}', event)">
+                    ${EXAM_CATEGORIES[key].label}
+                </button>
+            `).join('');
+
+            renderPreparationItems(allData);
+            window.filterPreparation = filterPreparation;
+        }
+
+        // 初始化文字雲
+        function createWordCloud() {
+            let wordCloudData = [];
+            
+            if (typeof window.tryWordCloudData !== 'undefined' && Array.isArray(window.tryWordCloudData)) {
+                wordCloudData = window.tryWordCloudData.map(item => [item.name, item.count]);
+            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                wordCloudData = window.tryRankingData.map(item => [item.name, item.count]);
+            } else {
+                const canvas = document.getElementById('wordCloud');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#0ef0ff';
+                ctx.font = '16px Segoe UI';
+                ctx.textAlign = 'center';
+                ctx.fillText('無可用資料，請確認 try.js 是否正確載入', canvas.width/2, canvas.height/2);
+                return;
+            }
+
+            const canvas = document.getElementById('wordCloud');
+            if (!canvas) return;
+
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+
+            if (typeof WordCloud === 'function') {
+                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+                
+                WordCloud(canvas, {
+                    list: wordCloudData,
+                    gridSize: 10,
+                    weightFactor: 1.5,
+                    fontFamily: 'Segoe UI, sans-serif',
+                    color: function () {
+                        const colors = ['#0ef0ff', '#0a8cff', '#9d4edd', '#00ffcc'];
+                        return colors[Math.floor(Math.random() * colors.length)];
+                    },
+                    backgroundColor: 'transparent',
+                    rotateRatio: 0.5,
+                    rotationSteps: 2,
+                    shape: 'circle'
+                });
+            }
+        }
+
+        // 初始化排名
+        function initializeLiveRanking() {
+            const container = document.getElementById('liveRanking');
+            let sourceData = [];
+
+            if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                sourceData = window.tryRankingData;
+            } else {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                        <p class="text-warning mb-1">外部資料載入失敗</p>
+                        <small class="text-secondary">請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedExams = [...sourceData].sort((a, b) => b.count - a.count);
+
+            container.innerHTML = sortedExams.map((exam, index) => `
+                <div class="ranking-item d-flex justify-content-between align-items-center">
+                    <div class="d-flex align-items-center">
+                        <div class="position-relative me-2">
+                            <span class="badge ${index < 3 ? 'bg-primary' : 'bg-secondary'} bg-opacity-25 ${index < 3 ? 'text-primary' : 'text-secondary'} rounded-circle d-flex align-items-center justify-content-center" 
+                                  style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                ${index + 1}
+                            </span>
+                        </div>
+                        <span class="text-white">${exam.name}</span>
+                    </div>
+                    <span class="text-primary fw-bold">${exam.count}</span>
+                </div>
+            `).join('');
+        }
+
+        // 初始化熱門標籤
+        function initializeHotTags() {
+            const container = document.getElementById('hotTags');
+            let tags = [];
+            
+            if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
+                tags = window.tryHotTagsData;
+            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                tags = window.tryRankingData.slice(0, 10).map(item => item.name);
+            } else {
+                container.innerHTML = `
+                    <div class="text-warning small">
+                        <i class="fas fa-exclamation-circle me-1"></i> 標籤資料載入失敗
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = tags.map(tag => 
+                `<span class="tech-tag">#${tag}</span>`
+            ).join('');
+        }
+
+        // 頁面初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeExamPreparation();
+            
+            setTimeout(() => {
+                createWordCloud();
+                initializeLiveRanking();
+                initializeHotTags();
+            }, 100);
+
             document.getElementById('refreshWordCloud').addEventListener('click', function() {
                 this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>生成中...';
                 this.disabled = true;
