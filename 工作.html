@@ -9,718 +9,140 @@
     <script src="https://cdn.jsdelivr.net/gh/holtzy/D3-graph-gallery@master/LIB/d3.layout.cloud.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
+        /* CSS 保持不變 */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         
         :root {
-            --primary: #4a6fa5;
-            --secondary: #6b8cbc;
-            --accent: #ff6b6b;
-            --light: #f8f9fa;
-            --dark: #343a40;
-            --gray: #6c757d;
-            --light-gray: #e9ecef;
-            --success: #28a745;
-            --interview: #6a5acd;
-            --discuss: #20b2aa;
+            --primary: #4a6fa5; --secondary: #6b8cbc; --accent: #ff6b6b; --light: #f8f9fa;
+            --dark: #343a40; --gray: #6c757d; --light-gray: #e9ecef; --success: #28a745;
+            --interview: #6a5acd; --discuss: #20b2aa;
         }
         
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
-            color: var(--dark);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
+        body { background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%); color: var(--dark); line-height: 1.6; }
         
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
         
         header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 20px 0;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            border-radius: 0 0 15px 15px;
-            margin-bottom: 30px;
-            position: relative;
-            overflow: hidden;
+            color: white; padding: 20px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            border-radius: 0 0 15px 15px; margin-bottom: 30px;
         }
         
-        header::before {
-            content: "";
-            position: absolute;
-            top: -50px;
-            right: -50px;
-            width: 200px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
+        .header-content { display: flex; justify-content: space-between; align-items: center; padding: 0 20px; }
         
-        header::after {
-            content: "";
-            position: absolute;
-            bottom: -80px;
-            left: -80px;
-            width: 300px;
-            height: 300px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 50%;
-        }
+        .logo { display: flex; align-items: center; gap: 15px; }
+        .logo i { font-size: 2.2rem; color: #ffd43b; }
+        .logo h1 { font-size: 1.8rem; font-weight: 700; }
         
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 20px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-        
-        .logo i {
-            font-size: 2.2rem;
-            color: #ffd43b;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-        
-        .logo h1 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .nav-links {
-            display: flex;
-            gap: 25px;
-        }
-        
+        .nav-links { display: flex; gap: 25px; }
         .nav-links a {
-            color: white;
-            text-decoration: none;
-            font-weight: 500;
-            padding: 8px 15px;
-            border-radius: 30px;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            color: white; text-decoration: none; font-weight: 500; padding: 8px 15px;
+            border-radius: 30px; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px;
         }
+        .nav-links a:hover, .nav-links a.active { background-color: rgba(255, 255, 255, 0.2); }
         
-        .nav-links a:hover, .nav-links a.active {
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        
-        .search-bar {
-            display: flex;
-            gap: 10px;
-            max-width: 500px;
-            width: 100%;
-        }
-        
-        .search-bar input {
-            flex: 1;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
+        .search-bar { display: flex; gap: 10px; max-width: 500px; width: 100%; }
+        .search-bar input { flex: 1; padding: 12px 20px; border: none; border-radius: 50px; font-size: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
         .search-bar button {
-            background-color: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 25px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            background-color: var(--accent); color: white; border: none; border-radius: 50px;
+            padding: 12px 25px; cursor: pointer; font-weight: 600; transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15); display: flex; align-items: center; gap: 8px;
         }
-        
-        .search-bar button:hover {
-            background-color: #ff5252;
-            transform: translateY(-2px);
-        }
+        .search-bar button:hover { background-color: #ff5252; transform: translateY(-2px); }
         
         .hero-section {
             background: linear-gradient(135deg, rgba(106, 90, 205, 0.9), rgba(32, 178, 170, 0.9));
-            border-radius: 20px;
-            padding: 40px;
-            margin-bottom: 40px;
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
+            border-radius: 20px; padding: 40px; margin-bottom: 40px; color: white;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         }
         
-        .hero-section::before {
-            content: "";
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none"/><path d="M0,50 Q50,20 100,50 Q50,80 0,50 Z" fill="rgba(255,255,255,0.05)"/></svg>');
-            opacity: 0.3;
-        }
+        .hero-section h2 { font-size: 2.5rem; margin-bottom: 15px; max-width: 800px; }
+        .hero-section p { font-size: 1.2rem; margin-bottom: 25px; max-width: 700px; opacity: 0.9; }
         
-        .hero-section h2 {
-            font-size: 2.5rem;
-            margin-bottom: 15px;
-            max-width: 800px;
-        }
-        
-        .hero-section p {
-            font-size: 1.2rem;
-            margin-bottom: 25px;
-            max-width: 700px;
-            opacity: 0.9;
-        }
-        
-        .stats-cards {
-            display: flex;
-            gap: 20px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        
+        .stats-cards { display: flex; gap: 20px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
         .stat-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 20px;
-            min-width: 180px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(10px); border-radius: 15px;
+            padding: 20px; min-width: 180px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.2);
         }
+        .stat-card .number { font-size: 2.2rem; font-weight: 700; margin-bottom: 5px; }
+        .stat-card .label { font-size: 1rem; opacity: 0.9; }
         
-        .stat-card .number {
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-        
-        .stat-card .label {
-            font-size: 1rem;
-            opacity: 0.9;
-        }
-        
-        .main-content {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-bottom: 40px;
-        }
-        
-        @media (max-width: 992px) {
-            .main-content {
-                grid-template-columns: 1fr;
-            }
-        }
+        .main-content { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 40px; }
+        @media (max-width: 992px) { .main-content { grid-template-columns: 1fr; } }
         
         .section-title {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid var(--light-gray);
+            display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px;
+            padding-bottom: 10px; border-bottom: 2px solid var(--light-gray);
         }
+        .section-title h2 { font-size: 1.5rem; color: var(--interview); display: flex; align-items: center; gap: 10px; }
+        .section-title h2 i { background-color: rgba(106, 90, 205, 0.1); padding: 8px; border-radius: 10px; color: var(--interview); }
         
-        .section-title h2 {
-            font-size: 1.5rem;
-            color: var(--interview);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .section-title h2 i {
-            background-color: rgba(106, 90, 205, 0.1);
-            padding: 8px;
-            border-radius: 10px;
-            color: var(--interview);
-        }
-        
-        .filters {
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            margin-bottom: 25px;
-        }
-        
+        .filters { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
         .filter-btn {
-            background-color: white;
-            border: 1px solid var(--light-gray);
-            padding: 8px 16px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
+            background-color: white; border: 1px solid var(--light-gray); padding: 8px 16px; border-radius: 50px;
+            cursor: pointer; transition: all 0.2s ease; font-size: 0.9rem; display: flex; align-items: center; gap: 5px;
         }
+        .filter-btn:hover, .filter-btn.active { background-color: var(--interview); color: white; border-color: var(--interview); }
         
-        .filter-btn:hover, .filter-btn.active {
-            background-color: var(--interview);
-            color: white;
-            border-color: var(--interview);
-        }
+        .tab-container { display: flex; margin-bottom: 20px; background-color: white; border-radius: 50px; padding: 5px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .tab { flex: 1; text-align: center; padding: 10px; border-radius: 50px; cursor: pointer; transition: all 0.3s ease; }
+        .tab.active { background-color: var(--interview); color: white; }
         
-        .interview-list {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            padding: 25px;
-            height: 650px;
-            overflow-y: auto;
-        }
+        .interview-list { background-color: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); padding: 25px; height: 650px; overflow-y: auto; }
+        .interview-list::-webkit-scrollbar { width: 8px; }
+        .interview-list::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+        .interview-list::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 10px; }
+        .interview-list::-webkit-scrollbar-thumb:hover { background: var(--interview); }
         
         .interview-card {
-            background-color: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-            border-left: 4px solid var(--interview);
+            background-color: white; border-radius: 12px; padding: 20px; margin-bottom: 20px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05); border-left: 4px solid var(--interview);
             transition: all 0.3s ease;
-            position: relative;
         }
+        .interview-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .interview-card.discussion { border-left: 4px solid var(--discuss); }
+        .interview-card h3 { font-size: 1.2rem; margin-bottom: 8px; color: var(--dark); }
         
-        .interview-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-        }
+        .interview-meta { display: flex; flex-wrap: wrap; gap: 15px; margin: 15px 0; color: var(--gray); font-size: 0.9rem; }
+        .interview-meta span { display: flex; align-items: center; gap: 5px; }
         
-        .interview-card.discussion {
-            border-left: 4px solid var(--discuss);
-        }
+        .interview-tags { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; }
+        .tag { background-color: var(--light-gray); padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; }
         
-        .interview-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 8px;
-            color: var(--dark);
-        }
+        .analytics-section { display: grid; grid-template-columns: 1fr; gap: 25px; }
         
-        .interview-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0;
-            color: var(--gray);
-            font-size: 0.9rem;
-        }
-        
-        .interview-meta span {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .interview-tags {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 15px;
-        }
-        
-        .tag {
-            background-color: var(--light-gray);
-            padding: 5px 12px;
-            border-radius: 50px;
-            font-size: 0.8rem;
-        }
-        
-        .tag.interview {
-            background-color: #e6e6fa;
-            color: var(--interview);
-        }
-        
-        .tag.discussion {
-            background-color: #e0ffff;
-            color: var(--discuss);
-        }
-        
-        .tag.tech {
-            background-color: #d8e2dc;
-            color: #2a9d8f;
-        }
-        
-        .tag.finance {
-            background-color: #f8edeb;
-            color: #e76f51;
-        }
-        
-        .tag.urgent {
-            background-color: #ffebee;
-            color: var(--accent);
-        }
-        
-        .interview-content {
-            margin: 15px 0;
-            line-height: 1.7;
-            color: #444;
-        }
-        
-        .interview-content p {
-            margin-bottom: 10px;
-        }
-        
-        .interview-actions {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--light-gray);
-        }
-        
-        .like-btn, .comment-btn, .save-btn {
-            background: none;
-            border: none;
-            color: var(--gray);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 5px;
-        }
-        
-        .like-btn:hover {
-            color: var(--accent);
-            background-color: rgba(255, 107, 107, 0.1);
-        }
-        
-        .comment-btn:hover {
-            color: var(--primary);
-            background-color: rgba(74, 111, 165, 0.1);
-        }
-        
-        .save-btn:hover {
-            color: var(--interview);
-            background-color: rgba(106, 90, 205, 0.1);
-        }
-        
-        .analytics-section {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 25px;
-        }
-        
-        .wordcloud-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            padding: 25px;
-            height: 300px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
-        
-        #wordCloud {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .word-item {
-            display: inline-block;
-            margin: 5px;
-            padding: 5px 12px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .word-item:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stats-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            padding: 25px;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 20px;
-        }
-        
-        .chart-container {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
-            padding: 25px;
-            height: 300px;
-            position: relative;
+        .wordcloud-container, .chart-container {
+            background-color: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            padding: 25px; height: 300px; position: relative;
         }
         
         .chart-center-label {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            font-weight: bold;
-            color: var(--dark);
-            pointer-events: none;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            text-align: center; font-weight: bold; color: var(--dark); pointer-events: none;
         }
+        .chart-center-label .main { font-size: 1.2rem; margin-bottom: 5px; }
+        .chart-center-label .sub { font-size: 0.9rem; color: var(--gray); }
         
-        .chart-center-label .main {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-        }
-        
-        .chart-center-label .sub {
-            font-size: 0.9rem;
-            color: var(--gray);
-        }
-        
-        .chart-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-        
-        @media (max-width: 768px) {
-            .chart-row {
-                grid-template-columns: 1fr;
-            }
-        }
+        .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+        @media (max-width: 768px) { .chart-row { grid-template-columns: 1fr; } }
         
         footer {
-            text-align: center;
-            margin-top: 40px;
-            padding: 30px 20px;
-            color: var(--gray);
-            font-size: 0.9rem;
-            border-top: 1px solid var(--light-gray);
-            background-color: white;
-            border-radius: 15px 15px 0 0;
+            text-align: center; margin-top: 40px; padding: 30px 20px; color: var(--gray); font-size: 0.9rem;
+            border-top: 1px solid var(--light-gray); background-color: white; border-radius: 15px 15px 0 0;
         }
         
-        .footer-links {
-            display: flex;
-            justify-content: center;
-            gap: 25px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
+        #d3WordCloud { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
+        #d3WordCloud svg { width: 100%; height: 100%; }
+        .d3-word { cursor: pointer; transition: all 0.3s ease; }
+        .d3-word:hover { fill: var(--accent) !important; transform: scale(1.05); }
         
-        .footer-links a {
-            color: var(--gray);
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
+        .analytics-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .analytics-tabs { display: flex; gap: 10px; }
+        .analytics-tab { padding: 8px 15px; background: var(--light-gray); border-radius: 30px; cursor: pointer; font-size: 0.9rem; }
+        .analytics-tab.active { background: var(--interview); color: white; }
         
-        .footer-links a:hover {
-            color: var(--primary);
-        }
-        
-        /* Scrollbar styling */
-        .interview-list::-webkit-scrollbar {
-            width: 8px;
-        }
-        
-        .interview-list::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
-        }
-        
-        .interview-list::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
-        }
-        
-        .interview-list::-webkit-scrollbar-thumb:hover {
-            background: var(--interview);
-        }
-        
-        .highlight {
-            background-color: rgba(255, 215, 0, 0.3);
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        
-        .popular-badge {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background-color: var(--accent);
-            color: white;
-            padding: 3px 10px;
-            border-radius: 30px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
-        
-        .difficulty-meter {
-            display: flex;
-            gap: 5px;
-            margin-top: 8px;
-        }
-        
-        .difficulty-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background-color: #e0e0e0;
-        }
-        
-        .difficulty-dot.active {
-            background-color: var(--interview);
-        }
-        
-        .content-preview {
-            background-color: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            border-left: 3px solid var(--interview);
-            font-style: italic;
-            color: #555;
-        }
-        
-        .content-preview.discussion {
-            border-left: 3px solid var(--discuss);
-        }
-        
-        .category-title {
-            background: linear-gradient(135deg, var(--interview), var(--discuss));
-            color: white;
-            padding: 10px 20px;
-            border-radius: 30px;
-            font-weight: 600;
-            margin-bottom: 20px;
-            display: inline-block;
-        }
-        
-        .tab-container {
-            display: flex;
-            margin-bottom: 20px;
-            background-color: white;
-            border-radius: 50px;
-            padding: 5px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            border-radius: 50px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .tab.active {
-            background-color: var(--interview);
-            color: white;
-        }
-        
-        .interview-stats {
-            display: flex;
-            gap: 15px;
-            margin-top: 10px;
-            color: var(--gray);
-            font-size: 0.85rem;
-        }
-        
-        .wordcloud-title {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 10;
-        }
-        
-        /* D3 Word Cloud Styles */
-        #d3WordCloud {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #d3WordCloud svg {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .d3-word {
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .d3-word:hover {
-            fill: var(--accent) !important;
-            transform: scale(1.05);
-        }
-        
-        .analytics-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        .analytics-tabs {
-            display: flex;
-            gap: 10px;
-        }
-        
-        .analytics-tab {
-            padding: 8px 15px;
-            background: var(--light-gray);
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-        
-        .analytics-tab.active {
-            background: var(--interview);
-            color: white;
-        }
+        .error-msg { color: var(--accent); text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -731,7 +153,6 @@
                     <i class="fas fa-comments"></i>
                     <h1>Dcard 面試心得與職涯討論平台</h1>
                 </div>
-                
                 <div class="nav-links">
                     <a href="index.html" class="active"><i class="fas fa-home"></i> 首頁</a>
                     <a href="#"><i class="fas fa-clipboard-list"></i> 面試心得</a>
@@ -746,29 +167,15 @@
         <div class="hero-section">
             <h2>探索 Dcard 上的面試心得與職涯討論</h2>
             <p>我們從 Dcard 工作版蒐集最新面試經驗與職涯討論，幫助您求職準備與職涯規劃</p>
-            
             <div class="search-bar">
                 <input type="text" id="searchInput" placeholder="搜尋公司、職位或關鍵字...">
                 <button id="searchBtn"><i class="fas fa-search"></i> 搜尋</button>
             </div>
-            
             <div class="stats-cards">
-                <div class="stat-card">
-                    <div class="number">1,258</div>
-                    <div class="label">面試心得</div>
-                </div>
-                <div class="stat-card">
-                    <div class="number">326</div>
-                    <div class="label">熱門公司</div>
-                </div>
-                <div class="stat-card">
-                    <div class="number">98%</div>
-                    <div class="label">實際經驗</div>
-                </div>
-                <div class="stat-card">
-                    <div class="number">24</div>
-                    <div class="label">職涯主題</div>
-                </div>
+                <div class="stat-card"><div class="number">1,258</div><div class="label">面試心得</div></div>
+                <div class="stat-card"><div class="number">326</div><div class="label">熱門公司</div></div>
+                <div class="stat-card"><div class="number">98%</div><div class="label">實際經驗</div></div>
+                <div class="stat-card"><div class="number">24</div><div class="label">職涯主題</div></div>
             </div>
         </div>
 
@@ -777,10 +184,6 @@
             <button class="filter-btn"><i class="fas fa-laptop-code"></i> 科技業</button>
             <button class="filter-btn"><i class="fas fa-landmark"></i> 金融業</button>
             <button class="filter-btn"><i class="fas fa-graduation-cap"></i> 新鮮人</button>
-            <button class="filter-btn"><i class="fas fa-code"></i> 工程師</button>
-            <button class="filter-btn"><i class="fas fa-paint-brush"></i> 設計</button>
-            <button class="filter-btn"><i class="fas fa-chart-line"></i> 行銷</button>
-            <button class="filter-btn"><i class="fas fa-user-tie"></i> 管理職</button>
         </div>
 
         <div class="tab-container">
@@ -793,11 +196,9 @@
             <div class="interview-listings">
                 <div class="section-title">
                     <h2><i class="fas fa-comment-dots"></i> 近期熱門討論</h2>
-                    <span>共 <span id="postCount">24</span> 篇內容</span>
+                    <span>共 <span id="postCount">8</span> 篇內容</span>
                 </div>
-                <div class="interview-list" id="interviewList">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
+                <div class="interview-list" id="interviewList"></div>
             </div>
 
             <div class="analytics-section">
@@ -811,36 +212,26 @@
                 
                 <div class="chart-row">
                     <div class="wordcloud-container">
-                        <div class="wordcloud-title">
-                            <h3><i class="fas fa-cloud"></i> 熱門關鍵字文字雲</h3>
-                        </div>
+                        <div class="section-title"><h3><i class="fas fa-cloud"></i> 熱門關鍵字文字雲</h3></div>
                         <div id="d3WordCloud"></div>
                     </div>
-                    
                     <div class="chart-container">
-                        <div class="section-title">
-                            <h3><i class="fas fa-chart-pie"></i> 面試結果分佈</h3>
-                        </div>
+                        <div class="section-title"><h3><i class="fas fa-chart-pie"></i> 面試結果分佈</h3></div>
                         <canvas id="resultChart"></canvas>
                         <div class="chart-center-label">
                             <div class="main">面試結果</div>
-                            <div class="sub">100 篇心得</div>
+                            <div id="resultChartTotal" class="sub">載入中...</div>
                         </div>
                     </div>
                 </div>
                 
                 <div class="chart-row">
                     <div class="chart-container">
-                        <div class="section-title">
-                            <h3><i class="fas fa-star"></i> 面試難度分佈</h3>
-                        </div>
+                        <div class="section-title"><h3><i class="fas fa-star"></i> 面試難度分佈</h3></div>
                         <canvas id="difficultyChart"></canvas>
                     </div>
-                    
                     <div class="chart-container">
-                        <div class="section-title">
-                            <h3><i class="fas fa-money-bill-wave"></i> 公司薪資比較</h3>
-                        </div>
+                        <div class="section-title"><h3><i class="fas fa-money-bill-wave"></i> 公司薪資比較</h3></div>
                         <canvas id="salaryChart"></canvas>
                     </div>
                 </div>
@@ -849,324 +240,61 @@
     </div>
 
     <footer>
-        <div class="footer-links">
-            <a href="#">關於我們</a>
-            <a href="#">隱私政策</a>
-            <a href="#">使用條款</a>
-            <a href="#">聯絡我們</a>
-            <a href="#">常見問題</a>
-        </div>
-        <p>資料來源：Dcard 工作板 | 資料更新時間：2023年11月15日</p>
-        <p>© 2023 Dcard 面試心得與職涯討論平台 - 僅供學習使用</p>
+        <p>資料來源：Dcard 工作板</p>
     </footer>
 
+    <!-- 外部資料檔案 -->
+    <script src="./js/hot.js"></script>
+    <script src="./js/f.js"></script>
+    
+    <!-- 主程式碼 -->
     <script>
-        // CSV 数据 - 直接嵌入到 JavaScript 中
-        const csvData = [
-            {
-                title: "Google 軟體工程師面試心得",
-                content: "Google 的面試流程非常嚴謹，總共五輪面試，包含演算法、系統設計和行為面試。面試官非常專業，問題也很有深度。我花了很多時間準備 LeetCode 和系統設計，最終順利拿到 offer。",
-                comments: "15",
-                link: "#"
-            },
-            {
-                title: "台積電設備工程師面試經驗",
-                content: "台積電的面試分為三關：筆試、專業面試和人資面談。筆試考專業科目和英文，面試則著重於解決問題的能力和團隊合作。整體而言，面試難度中等，但需要對半導體製程有基本了解。",
-                comments: "22",
-                link: "#"
-            },
-            {
-                title: "非本科轉職軟體工程師的心路歷程",
-                content: "從商科背景轉職成為軟體工程師，我花了兩年時間自學。一開始從線上課程開始，後來參與開源專案和實習。面試時最常被問到轉職動機和專案經驗，建議非本科的同學多累積實作經驗。",
-                comments: "45",
-                link: "#"
-            },
-            {
-                title: "金融業MA面試全記錄",
-                content: "金融業的儲備幹部(MA)面試競爭激烈，通常有多輪關卡：團體面試、個案分析和高階主管面試。需要展現領導力、分析能力和溝通技巧。我準備了許多金融時事和個案分析，最終成功錄取。",
-                comments: "18",
-                link: "#"
-            },
-            {
-                title: "Amazon產品經理面試分享",
-                content: "Amazon的面試非常注重領導力原則，每輪面試都會圍繞這些原則提問。我準備了許多 STAR 方法的回答，並且對 Amazon 的業務有深入了解。面試難度很高，但收穫很多。",
-                comments: "12",
-                link: "#"
-            },
-            {
-                title: "如何準備科技業面試？",
-                content: "科技業面試通常包含演算法、系統設計和行為面試。建議提前三個月開始準備，每天練習 LeetCode，閱讀系統設計相關資料，並且準備好自己的專案經驗和行為問題回答。",
-                comments: "33",
-                link: "#"
-            },
-            {
-                title: "新創公司面試經驗談",
-                content: "新創公司的面試流程通常比較彈性，但問題更加實際。他們很看重解決問題的能力和對公司產品的熱情。我面試了幾家新創，發現文化契合度是他們非常重視的一環。",
-                comments: "20",
-                link: "#"
-            },
-            {
-                title: "海外工作求職經驗分享",
-                content: "申請海外工作需要準備英文履歷和 cover letter，並且熟悉當地公司的面試流程。我透過 LinkedIn 建立人脈，參加線上徵才活動，最終成功拿到新加坡的工作機會。",
-                comments: "28",
-                link: "#"
-            }
-        ];
-
-        // 转换 CSV 数据为应用程序格式
-        function convertCSVData(csvData) {
-            return csvData.map((item, index) => {
-                // 根据标题内容猜测类型
-                const isInterview = item.title.includes('面試') || 
-                                   item.title.includes('面谈') || 
-                                   item.title.includes('Interview');
-                
-                // 从内容中提取预览
-                const preview = item.content.substring(0, 100) + '...';
-                
-                // 从标题和内容中提取标签
-                const tags = extractTags(item.title + ' ' + item.content);
-                
-                // 生成随机数据以填充缺失字段
-                const randomViews = Math.floor(Math.random() * 2000) + 500;
-                const randomLikes = Math.floor(randomViews * 0.05);
-                const randomComments = parseInt(item.comments) || Math.floor(randomViews * 0.02);
-                
-                return {
-                    id: 1000 + index, // 确保不与现有数据冲突
-                    title: item.title,
-                    type: isInterview ? 'interview' : 'discussion',
-                    company: isInterview ? extractCompany(item.title) : '',
-                    position: isInterview ? extractPosition(item.title) : '',
-                    result: isInterview ? (Math.random() > 0.5 ? '錄取' : '未錄取') : '',
-                    difficulty: isInterview ? Math.floor(Math.random() * 5) + 1 : 0,
-                    author: '匿名',
-                    posted: getRandomDate(),
-                    views: randomViews,
-                    likes: randomLikes,
-                    comments: randomComments,
-                    tags: tags,
-                    content: item.content,
-                    preview: preview,
-                    link: item.link || '#'
-                };
-            });
-        }
-
-        // 从文本中提取标签
-        function extractTags(text) {
-            const commonTags = [
-                '科技業', '金融業', '新鮮人', '工程師', '設計', '行銷', '管理職',
-                '轉職', '自學', '非本科', '職涯規劃', '迷茫', '選擇困難',
-                'FAANG', '台積電', 'Google', 'Amazon', '產品經理', '軟體工程師',
-                '心理健康', '職場焦慮', '自我成長', '工作壓力'
-            ];
-            
-            const tags = [];
-            for (const tag of commonTags) {
-                if (text.includes(tag)) {
-                    tags.push(tag);
-                }
-            }
-            
-            // 如果没有找到标签，添加一些默认标签
-            if (tags.length === 0) {
-                tags.push('職涯討論', '經驗分享');
-            }
-            
-            return tags;
-        }
-
-        // 从标题中提取公司名称
-        function extractCompany(title) {
-            const companies = [
-                'Google', '台積電', '聯發科', '國泰金控', 'Amazon', '微軟',
-                'Facebook', 'Apple', 'Netflix', '華碩', '鴻海', '台達電'
-            ];
-            
-            for (const company of companies) {
-                if (title.includes(company)) {
-                    return company;
-                }
-            }
-            
-            return '未知公司';
-        }
-
-        // 从标题中提取职位
-        function extractPosition(title) {
-            const positions = [
-                '軟體工程師', '產品經理', '設備工程師', '儲備幹部', '前端工程師',
-                '後端工程師', '全端工程師', '資料科學家', 'UI/UX設計師', '行銷專員'
-            ];
-            
-            for (const position of positions) {
-                if (title.includes(position)) {
-                    return position;
-                }
-            }
-            
-            return '未知職位';
-        }
-
-        // 生成随机日期
-        function getRandomDate() {
-            const daysAgo = Math.floor(Math.random() * 30) + 1;
-            if (daysAgo === 1) return '1天前';
-            return `${daysAgo}天前`;
-        }
-
-        // 模擬面試心得和職涯討論數據
+        // 內容數據
         const contentData = [
             {
-                id: 1,
-                title: "Google 軟體工程師面試全記錄",
-                type: "interview",
-                company: "Google",
-                position: "軟體工程師",
-                result: "錄取",
-                difficulty: 4,
-                author: "匿名",
-                posted: "2天前",
-                views: 1245,
-                likes: 89,
-                comments: 32,
+                id: 1, title: "Google 軟體工程師面試全記錄", type: "interview", company: "Google", position: "軟體工程師",
+                result: "錄取", difficulty: 4, author: "匿名", posted: "2天前", views: 1245, likes: 89, comments: 32,
                 tags: ["科技業", "工程師", "FAANG", "LeetCode"],
-                content: "前後經歷了五輪面試，從電話面試到現場面試，每輪都包含演算法題和系統設計題。面試官非常注重問題解決能力和溝通技巧...",
                 preview: "第一關是線上測驗，包含兩道中等難度的LeetCode題目，時間90分鐘。第二關是電話面試，主要考系統設計..."
             },
             {
-                id: 2,
-                title: "該繼續留在舒適圈還是挑戰新機會？",
-                type: "discussion",
-                author: "職涯迷途者",
-                posted: "5天前",
-                views: 2456,
-                likes: 145,
-                comments: 78,
-                tags: ["職涯規劃", "迷茫", "選擇困難", "轉職"],
-                content: "目前在一家穩定但發展有限的公司，年薪約80萬，工作輕鬆但缺乏挑戰。最近收到一份新offer，年薪110萬但壓力大且需經常加班...",
+                id: 2, title: "該繼續留在舒適圈還是挑戰新機會？", type: "discussion", author: "職涯迷途者",
+                posted: "5天前", views: 2456, likes: 145, comments: 78, tags: ["職涯規劃", "迷茫", "選擇困難", "轉職"],
                 preview: "已經在這家公司三年了，每天工作內容都差不多，學不到新東西。新offer薪資很不錯，但聽說加班文化嚴重..."
             },
             {
-                id: 3,
-                title: "台積電設備工程師面試經驗分享",
-                type: "interview",
-                company: "台積電",
-                position: "設備工程師",
-                result: "錄取",
-                difficulty: 3,
-                author: "工程新鮮人",
-                posted: "3天前",
-                views: 1890,
-                likes: 76,
-                comments: 41,
+                id: 3, title: "台積電設備工程師面試經驗分享", type: "interview", company: "台積電", position: "設備工程師",
+                result: "錄取", difficulty: 3, author: "工程新鮮人", posted: "3天前", views: 1890, likes: 76, comments: 41,
                 tags: ["半導體", "新鮮人", "輪班", "設備工程"],
-                content: "面試分為三關：人資面談、專業測驗和部門主管面試。專業測驗包含基本電學、物理和邏輯測驗...",
                 preview: "第一關人資面談主要了解個人背景和求職動機，第二關專業測驗有60題選擇題，時間90分鐘..."
             },
             {
-                id: 4,
-                title: "非本科轉職軟體工程師的心路歷程",
-                type: "discussion",
-                author: "轉職成功者",
-                posted: "1週前",
-                views: 3210,
-                likes: 210,
-                comments: 92,
-                tags: ["轉職", "自學", "非本科", "工程師"],
-                content: "從商科背景轉職成為前端工程師，歷時一年半的自學過程。分享我的學習資源、時間安排和面試準備技巧...",
+                id: 4, title: "非本科轉職軟體工程師的心路歷程", type: "discussion", author: "轉職成功者",
+                posted: "1週前", views: 3210, likes: 210, comments: 92, tags: ["轉職", "自學", "非本科", "工程師"],
                 preview: "一開始完全沒有程式基礎，從freeCodeCamp和Udemy課程開始學習HTML/CSS/JavaScript..."
             },
             {
-                id: 5,
-                title: "Amazon PM 面試全過程",
-                type: "interview",
-                company: "Amazon",
-                position: "產品經理",
-                result: "未錄取",
-                difficulty: 5,
-                author: "匿名",
-                posted: "1天前",
-                views: 980,
-                likes: 42,
-                comments: 18,
+                id: 5, title: "Amazon PM 面試全過程", type: "interview", company: "Amazon", position: "產品經理",
+                result: "未錄取", difficulty: 5, author: "匿名", posted: "1天前", views: 980, likes: 42, comments: 18,
                 tags: ["產品經理", "FAANG", "領導力原則", "案例分析"],
-                content: "經歷了六輪面試，每輪都圍繞亞馬遜的領導力原則提問。最後一輪的案例分析非常具有挑戰性...",
                 preview: "第一關是電話面試，主要詢問過往產品經驗和解決問題的方法。現場面試包含四輪，每輪45分鐘..."
             },
             {
-                id: 6,
-                title: "30歲該追求穩定還是冒險創業？",
-                type: "discussion",
-                author: "三十而立",
-                posted: "4天前",
-                views: 1876,
-                likes: 98,
-                comments: 56,
-                tags: ["創業", "職涯選擇", "三十歲", "人生規劃"],
-                content: "目前在一家中型企業擔任經理，年薪約150萬。有機會與朋友共同創業，但初期收入不穩定且風險高...",
+                id: 6, title: "30歲該追求穩定還是冒險創業？", type: "discussion", author: "三十而立",
+                posted: "4天前", views: 1876, likes: 98, comments: 56, tags: ["創業", "職涯選擇", "三十歲", "人生規劃"],
                 preview: "已經工作七年，累積了一定的存款和人脈。創業點子很有潛力，但擔心失敗後難以回到職場..."
             },
             {
-                id: 7,
-                title: "金融業MA計畫面試經驗",
-                type: "interview",
-                company: "國泰金控",
-                position: "儲備幹部",
-                result: "錄取",
-                difficulty: 4,
-                author: "金融新鮮人",
-                posted: "3天前",
-                views: 1560,
-                likes: 67,
-                comments: 29,
+                id: 7, title: "金融業MA計畫面試經驗", type: "interview", company: "國泰金控", position: "儲備幹部",
+                result: "錄取", difficulty: 4, author: "金融新鮮人", posted: "3天前", views: 1560, likes: 67, comments: 29,
                 tags: ["金融業", "儲備幹部", "新鮮人", "群體面試"],
-                content: "整個面試流程長達兩個月，包含線上測驗、團體面試、個案分析和最終高階主管面試...",
                 preview: "團體面試時8人一組，討論金融科技對銀行的影響。個案分析需要在2小時內完成一份投資建議報告..."
             },
             {
-                id: 8,
-                title: "如何克服職場焦慮與自我懷疑？",
-                type: "discussion",
-                author: "焦慮小職員",
-                posted: "2天前",
-                views: 2100,
-                likes: 124,
-                comments: 87,
-                tags: ["心理健康", "職場焦慮", "自我成長", "工作壓力"],
-                content: "工作三年後開始懷疑自己的能力，經常擔心犯錯和無法達到期望。分享我如何尋求幫助和克服這些負面情緒...",
+                id: 8, title: "如何克服職場焦慮與自我懷疑？", type: "discussion", author: "焦慮小職員",
+                posted: "2天前", views: 2100, likes: 124, comments: 87, tags: ["心理健康", "職場焦慮", "自我成長", "工作壓力"],
                 preview: "每天上班前都會感到胃痛，晚上難以入睡。經過與心理師的諮商，學習了一些應對技巧..."
             }
-        ];
-
-        // 文字雲數據
-        const wordCloudData = [
-            {text: "面試", size: 75},
-            {text: "職涯", size: 65},
-            {text: "迷茫", size: 60},
-            {text: "工程師", size: 55},
-            {text: "薪資", size: 50},
-            {text: "選擇", size: 45},
-            {text: "壓力", size: 55},
-            {text: "錄取", size: 50},
-            {text: "未錄取", size: 45},
-            {text: "準備", size: 40},
-            {text: "經驗", size: 50},
-            {text: "分享", size: 45},
-            {text: "轉職", size: 55},
-            {text: "非本科", size: 40},
-            {text: "金融業", size: 45},
-            {text: "科技業", size: 60},
-            {text: "FAANG", size: 50},
-            {text: "台積電", size: 55},
-            {text: "Google", size: 60},
-            {text: "產品經理", size: 50},
-            {text: "焦慮", size: 45},
-            {text: "創業", size: 50},
-            {text: "穩定", size: 40},
-            {text: "挑戰", size: 45},
-            {text: "成長", size: 40}
         ];
 
         // 渲染內容列表
@@ -1175,255 +303,143 @@
             contentList.innerHTML = '';
             
             if (content.length === 0) {
-                contentList.innerHTML = `
-                    <div style="text-align: center; padding: 40px; color: var(--gray);">
-                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 20px;"></i>
-                        <h3>沒有找到相關內容</h3>
-                        <p>請嘗試其他搜尋關鍵字或篩選條件</p>
-                    </div>
-                `;
+                contentList.innerHTML = '<div class="error-msg"><i class="fas fa-search"></i><h3>沒有找到相關內容</h3></div>';
                 return;
             }
             
             content.forEach(item => {
-                const contentCard = document.createElement('div');
-                contentCard.className = `interview-card ${item.type === 'discussion' ? 'discussion' : ''}`;
+                const card = document.createElement('div');
+                card.className = `interview-card ${item.type === 'discussion' ? 'discussion' : ''}`;
                 
-                let tagHTML = '';
-                item.tags.forEach(tag => {
-                    let tagClass = 'tag';
-                    if (item.type === 'interview') tagClass += ' interview';
-                    if (item.type === 'discussion') tagClass += ' discussion';
-                    if (tag === '科技業' || tag === '工程師') tagClass += ' tech';
-                    if (tag === '金融業') tagClass += ' finance';
-                    
-                    tagHTML += `<span class="${tagClass}">${tag}</span>`;
-                });
+                const meta = item.type === 'interview' 
+                    ? `<span><i class="fas fa-building"></i> ${item.company}</span>
+                       <span><i class="fas fa-briefcase"></i> ${item.position}</span>
+                       <span><i class="fas fa-${item.result === '錄取' ? 'check-circle' : 'times-circle'}"></i> ${item.result}</span>`
+                    : `<span><i class="fas fa-user"></i> ${item.author}</span>`;
                 
-                let popularBadge = item.views > 2000 ? '<div class="popular-badge">熱門</div>' : '';
-                
-                let difficultyMeter = '';
-                if (item.type === 'interview') {
-                    difficultyMeter = `
-                        <div class="difficulty-meter">
-                            <div class="difficulty-dot ${item.difficulty >= 1 ? 'active' : ''}"></div>
-                            <div class="difficulty-dot ${item.difficulty >= 2 ? 'active' : ''}"></div>
-                            <div class="difficulty-dot ${item.difficulty >= 3 ? 'active' : ''}"></div>
-                            <div class="difficulty-dot ${item.difficulty >= 4 ? 'active' : ''}"></div>
-                            <div class="difficulty-dot ${item.difficulty >= 5 ? 'active' : ''}"></div>
-                            <span style="margin-left: 10px; color: var(--gray);">面試難度</span>
-                        </div>
-                    `;
-                }
-                
-                const metaContent = item.type === 'interview' 
-                    ? `
-                        <span><i class="fas fa-building"></i> ${item.company}</span>
-                        <span><i class="fas fa-briefcase"></i> ${item.position}</span>
-                        <span><i class="fas fa-${item.result === '錄取' ? 'check-circle' : 'times-circle'}" style="color: ${item.result === '錄取' ? 'var(--success)' : 'var(--accent)'}"></i> ${item.result}</span>
-                    `
-                    : `
-                        <span><i class="fas fa-user"></i> ${item.author}</span>
-                    `;
-                
-                contentCard.innerHTML = `
-                    ${popularBadge}
+                card.innerHTML = `
                     <h3>${item.title}</h3>
                     <div class="interview-meta">
-                        ${metaContent}
+                        ${meta}
                         <span><i class="fas fa-clock"></i> ${item.posted}</span>
                         <span><i class="fas fa-eye"></i> ${item.views} 次瀏覽</span>
                     </div>
-                    
-                    ${difficultyMeter}
-                    
-                    <div class="content-preview ${item.type === 'discussion' ? 'discussion' : ''}">
-                        ${item.preview}
-                    </div>
-                    
+                    <div class="interview-content">${item.preview}</div>
                     <div class="interview-tags">
-                        ${tagHTML}
+                        ${item.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
                     </div>
-                    
-                    <div class="interview-stats">
+                    <div class="interview-meta">
                         <span><i class="fas fa-heart"></i> ${item.likes} 個喜歡</span>
                         <span><i class="fas fa-comment"></i> ${item.comments} 則留言</span>
                     </div>
-                    
-                    <div class="interview-actions">
-                        <div>
-                            <button class="like-btn"><i class="far fa-heart"></i> 喜歡</button>
-                            <button class="comment-btn"><i class="far fa-comment"></i> 留言</button>
-                        </div>
-                        <button class="save-btn"><i class="far fa-bookmark"></i> 收藏</button>
-                    </div>
                 `;
                 
-                contentList.appendChild(contentCard);
+                contentList.appendChild(card);
             });
             
             document.getElementById('postCount').textContent = content.length;
         }
 
-        // 使用d3-cloud創建真正的文字雲
-        function initD3WordCloud() {
+        // 創建文字雲 - 完全依賴外部 hot.js 資料
+        function initWordCloud() {
             const container = document.getElementById('d3WordCloud');
-            container.innerHTML = '';
+            if (!container) return;
             
-            // 定義顏色方案
-            const colors = [
-                '#4a6fa5', '#6b8cbc', '#ff6b6b', '#28a745', '#6a5acd', 
-                '#20b2aa', '#e76f51', '#2a9d8f', '#e9c46a', '#f4a261'
-            ];
+            // 檢查外部資料是否存在
+            if (!window.hotKeywords || window.hotKeywords.length === 0) {
+                container.innerHTML = '<div class="error-msg"><i class="fas fa-exclamation-triangle"></i><h3>無法載入熱門關鍵字資料</h3><p>請確保 hot.js 檔案存在於 js/ 資料夾中</p></div>';
+                return;
+            }
             
-            // 設置文字雲尺寸
             const width = container.clientWidth;
             const height = container.clientHeight;
             
-            // 創建SVG元素
             const svg = d3.select(container)
                 .append("svg")
                 .attr("width", width)
                 .attr("height", height);
             
-            // 定義文字雲佈局
-            const layout = d3.layout.cloud()
+            d3.layout.cloud()
                 .size([width, height])
-                .words(wordCloudData.map(d => ({
+                .words(window.hotKeywords.map(d => ({
                     text: d.text,
                     size: d.size * 0.8,
-                    color: colors[Math.floor(Math.random() * colors.length)]
+                    color: ['#4a6fa5', '#ff6b6b', '#28a745', '#6a5acd'][Math.floor(Math.random() * 4)]
                 })))
                 .padding(5)
-                .rotate(() => (Math.random() * 2 - 1) * 20)
-                .font("Impact")
+                .rotate(() => (Math.random() * 2 - 1) * 30)
+                .font("Microsoft JhengHei")
                 .fontSize(d => d.size)
-                .on("end", draw);
-            
-            layout.start();
-            
-            function draw(words) {
-                const g = svg.append("g")
-                    .attr("transform", `translate(${width/2},${height/2})`);
-                
-                g.selectAll("text")
-                    .data(words)
-                    .enter().append("text")
-                    .style("font-size", d => `${d.size}px`)
-                    .style("font-family", "Impact")
-                    .style("fill", d => d.color)
-                    .attr("text-anchor", "middle")
-                    .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
-                    .text(d => d.text)
-                    .attr("class", "d3-word")
-                    .on("click", function(_, d) {
-                        document.getElementById('searchInput').value = d.text;
-                        document.getElementById('searchBtn').click();
-                    });
-            }
+                .on("end", words => {
+                    svg.append("g")
+                        .attr("transform", `translate(${width/2},${height/2})`)
+                        .selectAll("text")
+                        .data(words)
+                        .enter().append("text")
+                        .style("font-size", d => `${d.size}px`)
+                        .style("font-family", "Microsoft JhengHei")
+                        .style("fill", d => d.color)
+                        .attr("text-anchor", "middle")
+                        .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
+                        .text(d => d.text)
+                        .attr("class", "d3-word")
+                        .on("click", (_, d) => {
+                            document.getElementById('searchInput').value = d.text;
+                            document.getElementById('searchBtn').click();
+                        });
+                })
+                .start();
         }
 
-        // 初始化圖表
+        // 初始化圖表 - 完全依賴外部 f.js 資料
         function initCharts() {
+            // 檢查外部資料是否存在
+            if (!window.interviewResults || window.interviewResults.length === 0) {
+                document.getElementById('resultChartTotal').textContent = '資料載入失敗';
+                return;
+            }
+            
             // 面試結果分佈圖
-            const ctx = document.getElementById('resultChart').getContext('2d');
-            new Chart(ctx, {
+            const total = window.interviewResults.reduce((sum, item) => sum + item.value, 0);
+            document.getElementById('resultChartTotal').textContent = `${total} 篇心得`;
+            
+            new Chart(document.getElementById('resultChart').getContext('2d'), {
                 type: 'doughnut',
                 data: {
-                    labels: ['錄取', '未錄取', '等待結果', '婉拒offer'],
+                    labels: window.interviewResults.map(item => item.label),
                     datasets: [{
-                        data: [42, 28, 20, 10],
-                        backgroundColor: [
-                            '#28a745',
-                            '#ff6b6b',
-                            '#4a6fa5',
-                            '#6c757d'
-                        ],
-                        borderWidth: 0
+                        data: window.interviewResults.map(item => item.value),
+                        backgroundColor: ['#28a745', '#ff6b6b', '#4a6fa5', '#6c757d']
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     cutout: '65%',
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true,
-                                pointStyle: 'circle'
-                            }
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: ${context.parsed}%`;
-                                }
-                            }
-                        }
-                    }
+                    plugins: { legend: { position: 'bottom' } }
                 }
             });
             
             // 面試難度分佈圖
-            const difficultyCtx = document.getElementById('difficultyChart').getContext('2d');
-            new Chart(difficultyCtx, {
+            new Chart(document.getElementById('difficultyChart').getContext('2d'), {
                 type: 'bar',
                 data: {
                     labels: ['1星', '2星', '3星', '4星', '5星'],
                     datasets: [{
-                        label: '面試難度分佈',
                         data: [5, 12, 35, 30, 18],
-                        backgroundColor: [
-                            'rgba(111, 90, 205, 0.5)',
-                            'rgba(111, 90, 205, 0.6)',
-                            'rgba(111, 90, 205, 0.7)',
-                            'rgba(111, 90, 205, 0.8)',
-                            'rgba(111, 90, 205, 1)'
-                        ],
-                        borderColor: [
-                            'rgba(111, 90, 205, 1)',
-                            'rgba(111, 90, 205, 1)',
-                            'rgba(111, 90, 205, 1)',
-                            'rgba(111, 90, 205, 1)',
-                            'rgba(111, 90, 205, 1)'
-                        ],
-                        borderWidth: 1
+                        backgroundColor: 'rgba(111, 90, 205, 0.7)'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.parsed.y}%`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 40,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    }
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 40 } }
                 }
             });
             
             // 公司薪資比較圖
-            const salaryCtx = document.getElementById('salaryChart').getContext('2d');
-            new Chart(salaryCtx, {
+            new Chart(document.getElementById('salaryChart').getContext('2d'), {
                 type: 'radar',
                 data: {
                     labels: ['Google', '台積電', '聯發科', '國泰金控', 'Amazon', '微軟'],
@@ -1432,143 +448,79 @@
                         data: [250, 65, 150, 75, 200, 180],
                         fill: true,
                         backgroundColor: 'rgba(106, 90, 205, 0.2)',
-                        borderColor: 'rgba(106, 90, 205, 1)',
-                        pointBackgroundColor: 'rgba(106, 90, 205, 1)',
-                        pointBorderColor: '#fff',
-                        pointHoverBackgroundColor: '#fff',
-                        pointHoverBorderColor: 'rgba(106, 90, 205, 1)'
+                        borderColor: 'rgba(106, 90, 205, 1)'
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: {
-                                display: true
-                            },
-                            suggestedMin: 0,
-                            suggestedMax: 300
-                        }
-                    }
+                    scales: { r: { suggestedMin: 0, suggestedMax: 300 } }
                 }
             });
         }
 
         // 搜尋功能
-        function setupSearch(allContentData) {
+        function setupSearch() {
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
             
-            const performSearch = () => {
-                const searchTerm = searchInput.value.toLowerCase().trim();
+            const search = () => {
+                const term = searchInput.value.toLowerCase().trim();
+                if (!term) return renderContent(contentData);
                 
-                if (!searchTerm) {
-                    renderContent(allContentData);
-                    return;
-                }
-                
-                const filteredContent = allContentData.filter(item => {
-                    const content = item.title.toLowerCase() + 
-                                    (item.company ? item.company.toLowerCase() : '') + 
-                                    item.content.toLowerCase() + 
-                                    item.tags.join(' ').toLowerCase();
-                    
-                    return content.includes(searchTerm);
+                const filtered = contentData.filter(item => {
+                    const text = item.title.toLowerCase() + item.preview.toLowerCase() + item.tags.join(' ').toLowerCase();
+                    return text.includes(term);
                 });
                 
-                renderContent(filteredContent);
+                renderContent(filtered);
             };
             
-            searchBtn.addEventListener('click', performSearch);
-            searchInput.addEventListener('keyup', (e) => {
-                if (e.key === 'Enter') performSearch();
-            });
-        }
-
-        // 篩選功能
-        function setupFilters(allContentData) {
-            const filterBtns = document.querySelectorAll('.filter-btn');
-            
-            filterBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // 移除所有按鈕的active類別
-                    filterBtns.forEach(b => b.classList.remove('active'));
-                    // 為當前按鈕添加active類別
-                    btn.classList.add('active');
-                    
-                    const filter = btn.textContent.replace(/\s+/g, ''); // 移除空格
-                    
-                    if (filter === '全部內容') {
-                        renderContent(allContentData);
-                        return;
-                    }
-                    
-                    const filteredContent = allContentData.filter(item => {
-                        return item.tags.some(tag => tag.includes(filter));
-                    });
-                    
-                    renderContent(filteredContent);
-                });
-            });
-        }
-        
-        // 標籤頁功能
-        function setupTabs(allContentData) {
-            const tabs = document.querySelectorAll('.tab');
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // 移除所有標籤的active類別
-                    tabs.forEach(t => t.classList.remove('active'));
-                    // 為當前標籤添加active類別
-                    tab.classList.add('active');
-                    
-                    const tabType = tab.getAttribute('data-tab');
-                    
-                    if (tabType === 'all') {
-                        renderContent(allContentData);
-                        return;
-                    }
-                    
-                    const filteredContent = allContentData.filter(item => item.type === tabType);
-                    renderContent(filteredContent);
-                });
-            });
-        }
-        
-        // 分析標籤頁功能
-        function setupAnalyticsTabs() {
-            const tabs = document.querySelectorAll('.analytics-tab');
-            
-            tabs.forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // 移除所有標籤的active類別
-                    tabs.forEach(t => t.classList.remove('active'));
-                    // 為當前標籤添加active類別
-                    tab.classList.add('active');
-                    
-                    const tabType = tab.getAttribute('data-tab');
-                    // 這裡可以根據選項卡切換顯示不同的圖表
-                });
-            });
+            searchBtn.addEventListener('click', search);
+            searchInput.addEventListener('keyup', (e) => e.key === 'Enter' && search());
         }
 
         // 初始化
         document.addEventListener('DOMContentLoaded', () => {
-            // 转换CSV数据
-            const convertedCSVData = convertCSVData(csvData);
+            renderContent(contentData);
+            setupSearch();
             
-            // 合并现有数据和CSV数据
-            const allContentData = [...contentData, ...convertedCSVData];
+            // 等待外部檔案載入後初始化圖表和文字雲
+            setTimeout(() => {
+                initCharts();
+                initWordCloud();
+            }, 500); // 給外部檔案更多時間載入
             
-            renderContent(allContentData);
-            initD3WordCloud();
-            initCharts();
-            setupSearch(allContentData);
-            setupFilters(allContentData);
-            setupTabs(allContentData);
-            setupAnalyticsTabs();
+            // 篩選功能
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    const filter = btn.textContent.replace(/\s+/g, '');
+                    if (filter === '全部內容') return renderContent(contentData);
+                    
+                    renderContent(contentData.filter(item => 
+                        item.tags.some(tag => tag.includes(filter))
+                    ));
+                });
+            });
+            
+            // 標籤頁功能
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    
+                    const type = tab.getAttribute('data-tab');
+                    if (type === 'all') return renderContent(contentData);
+                    
+                    renderContent(contentData.filter(item => item.type === type));
+                });
+            });
+            
+            // 響應式調整
+            window.addEventListener('resize', () => setTimeout(initWordCloud, 100));
         });
     </script>
 </body>
