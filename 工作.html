@@ -386,11 +386,7 @@
                 <button class="filter-btn"><i class="fas fa-user-graduate"></i> 新鮮人</button>
             </div>
 
-            <div class="tab-group">
-                <div class="tab-btn active" data-tab="all">綜合顯示</div>
-                <div class="tab-btn" data-tab="interview">面試心得</div>
-                <div class="tab-btn" data-tab="discussion">職涯請益</div>
-            </div>
+    
         </div>
 
         <div class="dashboard-grid">
@@ -446,7 +442,6 @@
     </div>
 
     <footer>
-        <p>© 2025 Dcard 職場數據洞察平台 | 此為資料分析練習專案，非官方頁面</p>
         <div class="data-status" id="dataSourceInfo">系統初始化...</div>
     </footer>
 
@@ -660,7 +655,7 @@
             
             // 狀態列更新
             const statusEl = document.getElementById('dataSourceInfo');
-            statusEl.innerHTML = `數據來源: JS本地文件 | 內容數: ${displayData.length} | 狀態: ${hasData ? '正常' : '無數據(請檢查content.js)'}`;
+            statusEl.innerHTML = `數據來源: dcard工作版 | 內容數: ${displayData.length} | 狀態: ${hasData ? '正常' : '無數據(請檢查content.js)'}`;
 
             // 延遲初始化圖表以確保容器大小正確
             setTimeout(() => {
