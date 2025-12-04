@@ -1,21 +1,19 @@
-// f.js - 面試結果統計資料
+// f.js - 真實面試結果分佈資料
 window.interviewResults = [
   {
     "label": "錄取",
-    "value": 36
+    "value": 116
   },
   {
     "label": "未錄取",
-    "value": 26
+    "value": 63
   },
   {
     "label": "無聲卡",
-    "value": 0
+    "value": 9
   },
   {
     "label": "等待中",
-    "value": 1
+    "value": 3
   }
 ];
-
-// 如果需要在其他檔案中使用，可以通過 window.interviewResults 存取
