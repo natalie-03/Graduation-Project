@@ -4,9 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dcard旅遊景點分析 | 熱門地點排行榜</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.0/src/wordcloud2.min.js"></script>
+    <title>Aloha Travel - 探索世界</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * {
@@ -22,27 +21,21 @@
             animation: gradientBG 15s ease infinite;
             color: #fff;
             min-height: 100vh;
-            padding: 20px;
+            padding-bottom: 40px;
         }
 
         @keyframes gradientBG {
-            0% {
-                background-position: 0% 50%
-            }
-
-            50% {
-                background-position: 100% 50%
-            }
-
-            100% {
-                background-position: 0% 50%
-            }
+            0% { background-position: 0% 50% }
+            50% { background-position: 100% 50% }
+            100% { background-position: 0% 50% }
         }
 
+        /* --- 修改處 1：調整容器寬度 --- */
         .container {
-            max-width: 1200px;
-            margin: 0 auto;
+            max-width: 1400px; /* 原本是 1200px，改小一點讓內容往內縮 */
+            margin: auto;
             position: relative;
+            padding: 24px;
         }
 
         .home-btn {
@@ -70,80 +63,330 @@
         }
 
         header {
-            text-align: center;
-            padding: 30px 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+            padding: 16px 0;
             margin-bottom: 30px;
-            animation: fadeInDown 1s ease;
         }
 
-        h1 {
-            font-size: 3rem;
-            margin-bottom: 10px;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        .header-inner {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #ffd166;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-links a {
+            color: rgba(255, 255, 255, 0.9);
+            text-decoration: none;
+            margin-left: 24px;
+            font-weight: 500;
+            transition: 0.3s;
+        }
+
+        .nav-links a:hover,
+        .nav-links a.active {
+            color: #ffd166;
+        }
+
+        .btn-cta {
+            background: rgba(255, 209, 102, 0.8);
+            color: #333;
+            padding: 10px 24px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-cta:hover {
+            background: rgba(255, 209, 102, 1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 209, 102, 0.3);
+        }
+
+        .hero {
+            text-align: center;
+            padding: 80px 0 60px;
+            background: url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?ixlib=rb-4.0.3&auto=format&fit=crop&w=1600&q=80') center/cover;
+            border-radius: 20px;
+            margin-bottom: 40px;
             position: relative;
-            display: inline-block;
+            color: white;
+            overflow: hidden;
         }
 
-        h1:after {
+        .hero::before {
             content: '';
             position: absolute;
-            bottom: -10px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80px;
-            height: 4px;
-            background: linear-gradient(to right, #ff9a9e, #fad0c4);
-            border-radius: 2px;
+            inset: 0;
+            background: rgba(26, 42, 108, 0.7);
+            border-radius: 20px;
         }
 
-        .subtitle {
+        .hero-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero h1 {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .hero p {
             font-size: 1.3rem;
             opacity: 0.9;
             max-width: 800px;
-            margin: 25px auto 0;
+            margin: 0 auto;
             line-height: 1.7;
             font-weight: 300;
         }
 
-        .dashboard {
+        .search-wrap {
+            max-width: 500px;
+            margin: 30px auto 0;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 8px;
+            border-radius: 50px;
             display: flex;
-            flex-wrap: wrap;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .search-input {
+            border: none;
+            flex: 1;
+            padding: 0 20px;
+            outline: none;
+            font-size: 1rem;
+            background: transparent;
+            color: white;
+        }
+
+        .search-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .search-btn {
+            background: rgba(255, 209, 102, 0.8);
+            border: none;
+            color: #333;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .search-btn:hover {
+            transform: scale(1.05);
+            background: rgba(255, 209, 102, 1);
+        }
+
+        .stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin: -30px auto 40px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 20px 40px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 160px;
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #ffd166;
+            display: block;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
             gap: 30px;
             margin-bottom: 40px;
         }
 
-        .panel {
+        .card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 25px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.18);
-            flex: 1;
-            min-width: 300px;
             transition: transform 0.3s ease;
+            margin-bottom: 30px;
         }
 
-        .panel:hover {
+        .card:hover {
             transform: translateY(-5px);
         }
 
-        .panel h2 {
+        .card-header {
+            padding: 0 0 20px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #ffd166;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
+        }
+
+        .badge {
+            background: rgba(255, 209, 102, 0.2);
             color: #ffd166;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 209, 102, 0.3);
         }
 
-        .ranking-list {
-            list-style: none;
+        .list-wrap {
+            max-height: 450px;
+            overflow-y: auto;
+            padding: 0 10px;
         }
 
-        .ranking-item {
+        .list-wrap::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .list-wrap::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .list-wrap::-webkit-scrollbar-thumb {
+            background: rgba(255, 209, 102, 0.5);
+            border-radius: 10px;
+        }
+
+        .list-item {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+
+        .list-item:last-child {
+            border: none;
+            margin-bottom: 0;
+        }
+
+        .list-item:hover {
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        .item-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .item-meta {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
             display: flex;
-            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 8px;
+        }
+
+        .item-meta i {
+            color: #ffd166;
+            margin-right: 4px;
+        }
+
+        .item-desc {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 10px;
+            padding: 15px 0 20px 0;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.07);
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: 0.2s;
+            color: rgba(255, 255, 255, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .tab.active {
+            background: rgba(255, 209, 102, 0.3);
+            color: white;
+            border-color: rgba(255, 209, 102, 0.5);
+        }
+
+        .rank-item {
+            display: flex;
+            align-items: center;
             padding: 15px;
             margin-bottom: 12px;
             background: rgba(255, 255, 255, 0.07);
@@ -152,114 +395,55 @@
             cursor: pointer;
         }
 
-        .ranking-item:hover {
+        .rank-item:hover {
             background: rgba(255, 255, 255, 0.15);
             transform: scale(1.02);
         }
 
-        .rank {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .rank-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .rank-num {
+            font-weight: 800;
             width: 40px;
             text-align: center;
+            font-size: 1.5rem;
             color: #ffd166;
         }
 
-        .rank-1 {
-            color: #ffd166;
-        }
+        .rank-1 { color: #ffd166; }
+        .rank-2 { color: #c9c9c9; }
+        .rank-3 { color: #cd7f32; }
 
-        .rank-2 {
-            color: #c9c9c9;
-        }
-
-        .rank-3 {
-            color: #cd7f32;
-        }
-
-        .location-info {
-            flex: 1;
-            padding: 0 15px;
-        }
-
-        .location-name {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .wordcloud-container {
-            height: 400px;
-            width: 100%;
+        .word-cloud {
             display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            padding: 20px;
             justify-content: center;
             align-items: center;
+            min-height: 200px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
         }
 
-        #wordcloud {
-            width: 100%;
-            height: 100%;
-        }
-
-        .search-container {
-            margin: 20px auto;
-            max-width: 500px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 12px 20px;
-            border-radius: 50px;
-            border: none;
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-input:focus {
-            background: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
-        }
-
-        .search-input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-
-        .location-tags {
-            margin-top: 8px;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 3px 8px;
+        .cloud-word {
+            padding: 8px 16px;
             background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            margin-right: 5px;
-            margin-bottom: 5px;
-            font-size: 0.8rem;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .location-details {
-            display: none;
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            line-height: 1.6;
-        }
-
-        .ranking-item.active .location-details {
-            display: block;
-        }
-
-        .data-source {
-            text-align: center;
-            padding: 20px;
-            opacity: 0.7;
-            font-size: 0.9rem;
+        .cloud-word:hover {
+            transform: scale(1.1) translateY(-3px);
+            box-shadow: 0 5px 15px rgba(255, 209, 102, 0.3);
+            color: white !important;
+            background: rgba(255, 209, 102, 0.3) !important;
         }
 
         footer {
@@ -271,359 +455,378 @@
             opacity: 0.8;
         }
 
-        @media(max-width:768px) {
-            .dashboard {
-                flex-direction: column;
-            }
-
-            h1 {
-                font-size: 2.2rem;
-            }
-
-            .panel {
-                min-width: 100%;
-            }
-
-            .home-btn {
-                top: 10px;
-                left: 10px;
-                padding: 8px 12px;
-                font-size: 0.9rem;
-            }
+        @media (max-width: 768px) {
+            .grid-layout { grid-template-columns: 1fr; }
+            .hero h1 { font-size: 2.2rem; }
+            .stats { flex-direction: column; gap: 15px; align-items: center; }
+            .stat-card { width: 100%; max-width: 300px; }
+            .nav-links { display: none; }
+            .home-btn { top: 10px; left: 10px; padding: 8px 12px; font-size: 0.9rem; }
         }
 
         @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
-        .fade-in {
-            animation: fadeIn 0.5s ease-in;
-        }
+        .fade-in { animation: fadeIn 0.5s ease-in; }
 
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-
-            to {
-                opacity: 1;
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(255, 209, 102, 0.5);
-            }
-
-            70% {
-                box-shadow: 0 0 0 15px rgba(255, 209, 102, 0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(255, 209, 102, 0);
-            }
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
     </style>
 </head>
 
 <body>
+    <header>
+        <div class="container header-inner">
+            <a href="#" class="logo"><i class="fas fa-paper-plane"></i>  Travel</a>
+            <a href="index.html" class="btn-cta">首頁</a>
+        </div>
+    </header>
+
     <div class="container">
-        <a href="index.html" class="home-btn"><i class="fas fa-arrow-left"></i> 返回首頁</a>
-        <header>
-            <h1><i class="fas fa-map-marked-alt"></i> Dcard 旅遊景點分析</h1>
-            <p class="subtitle">根據Dcard旅遊版近30日討論熱度，分析最受歡迎旅遊地點。</p>
-        </header>
-
-        <div class="search-container">
-            <input type="text" class="search-input" placeholder="搜尋旅遊地點..." id="searchInput">
-        </div>
-
-
-
-        <div class="dashboard">
-            <div class="panel">
-                <h2><i class="fas fa-trophy"></i> 熱門地點排行榜</h2>
-                <ul class="ranking-list" id="rankingList"></ul>
-            </div>
-            <div class="panel">
-                <h2><i class="fas fa-cloud"></i> 旅遊關鍵字文字雲</h2>
-                <div class="wordcloud-container">
-                    <canvas id="wordcloud"></canvas>
+        <div class="hero">
+            <div class="hero-content">
+                <h1>讓世界成為你的遊樂場</h1>
+                <p>尋找完美旅伴，分享獨家攻略，即刻出發</p>
+                <div class="search-wrap">
+                    <input type="text" class="search-input" placeholder="搜尋目的地、風格或旅伴...">
+                    <button class="search-btn"><i class="fas fa-search"></i></button>
                 </div>
             </div>
         </div>
-
-        <div class="dashboard">
-            <div class="panel">
-                <h2><i class="fas fa-chart-line"></i> 熱門地點討論趨勢</h2>
-                <div class="chart-container">
-                    <canvas id="trendChart"></canvas>
+    
+        <div class="grid-layout">
+            <div class="main-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-map-marked-alt"></i> 最新旅遊攻略</div>
+                        <span class="badge" id="badgeGuide">載入中</span>
+                    </div>
+                    <div class="list-wrap" id="guideList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-user-friends"></i> 尋找旅行夥伴</div>
+                        <span class="badge" id="badgeCompanion">載入中</span>
+                    </div>
+                    <div class="tabs" id="regionTabs">
+                        <div class="tab active" data-region="all">全部</div>
+                        <div class="tab" data-region="asia">亞洲</div>
+                        <div class="tab" data-region="europe">歐洲</div>
+                        <div class="tab" data-region="america">美洲</div>
+                        <div class="tab" data-region="oceania">大洋洲</div>
+                        <div class="tab" data-region="africa">非洲</div>
+                    </div>
+                    <div class="list-wrap" id="companionList"></div>
                 </div>
             </div>
-            <div class="panel">
-                <h2><i class="fas fa-chart-pie"></i> 地區分布比例</h2>
-                <div class="chart-container">
-                    <canvas id="regionChart"></canvas>
+            <div class="side-col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-trophy"></i> 熱門目的地</div>
+                    </div>
+                    <div style="padding: 0 24px 20px;" id="rankingList"></div>
+                </div>
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title"><i class="fas fa-hashtag"></i> 熱搜標籤</div>
+                    </div>
+                    <div class="word-cloud" id="wordCloud"></div>
                 </div>
             </div>
         </div>
+    </div> <script src="./js/data.js"></script>
+    <script src="./js/d.js"></script>
+    <script src="./js/7.js"></script>
+    <script src="./js/8.js"></script>
 
-        <div class="data-source">
-            <p>資料來源：Dcard 旅遊版 • 資料時間：近30日 • 更新頻率：每日更新</p>
-        </div>
-
-        <footer>
-            <p>此為Dcard旅遊熱點分析展示頁面，實際數據需透過爬蟲程式從Dcard獲取</p>
-            <p>© 2025 Dcard旅遊分析專案 | 僅供學習展示使用</p>
-        </footer>
-    </div>
-
-    <script src="./js/data.js"></script>
     <script>
-        let travelData = topLocations || [];
-        function initD3WordCloud() {
-            const container = document.getElementById('d3WordCloud');
-            container.innerHTML = '';
+        class App {
+            constructor() {
+                this.guideData = [];
+                this.companionData = [];
+                this.wordCloudData = [];
+                this.topLocations = [];
 
-            // 定義顏色方案
-            const colors = [
-                '#4a6fa5', '#6b8cbc', '#ff6b6b', '#28a745', '#6a5acd',
-                '#20b2aa', '#e76f51', '#2a9d8f', '#e9c46a', '#f4a261'
-            ];
-
-            // 設置文字雲尺寸
-            const width = container.clientWidth;
-            const height = container.clientHeight;
-
-            // 創建SVG元素
-            const svg = d3.select(container)
-                .append("svg")
-                .attr("width", width)
-                .attr("height", height);
-
-            // 定義文字雲佈局
-            const layout = d3.layout.cloud()
-                .size([width, height])
-                .words(wordCloudData.map(d => ({
-                    text: d.text,
-                    size: d.size * 0.8,
-                    color: colors[Math.floor(Math.random() * colors.length)]
-                })))
-                .padding(5)
-                .rotate(() => (Math.random() * 2 - 1) * 20)
-                .font("Impact")
-                .fontSize(d => d.size)
-                .on("end", draw);
-
-            layout.start();
-
-            function draw(words) {
-                const g = svg.append("g")
-                    .attr("transform", `translate(${width / 2},${height / 2})`);
-
-                g.selectAll("text")
-                    .data(words)
-                    .enter().append("text")
-                    .style("font-size", d => `${d.size}px`)
-                    .style("font-family", "Impact")
-                    .style("fill", d => d.color)
-                    .attr("text-anchor", "middle")
-                    .attr("transform", d => `translate(${d.x}, ${d.y})rotate(${d.rotate})`)
-                    .text(d => d.text)
-                    .attr("class", "d3-word")
-                    .on("click", function (_, d) {
-                        document.getElementById('searchInput').value = d.text;
-                        document.getElementById('searchBtn').click();
-                    });
+                this.init();
             }
-        }
-        function enhanceData() {
-            travelData = travelData.map((item, index) => {
-                let category = "asia";
-                if (item.name.includes("台灣")) category = "local";
-                else if (item.name.includes("法國") || item.name.includes("義大利") || item.name.includes("希臘") || item.name.includes("英國")) category = "europe";
-                else if (item.name.includes("峇里島") || item.name.includes("馬爾地夫")) category = "island";
 
-                const tagOptions = {
-                    "日本東京": ["櫻花", "美食", "購物", "溫泉"],
-                    "韓國首爾": ["韓劇景點", "韓式料理", "美妝購物", "咖啡廳"],
-                    "泰國曼谷": ["夜市", "按摩", "水上市場", "寺廟"],
-                    "台灣花蓮": ["太魯閣", "海景", "民宿", "自行車"],
-                    "法國巴黎": ["羅浮宮", "艾菲爾鐵塔", "法式甜點", "購物"],
-                    "義大利羅馬": ["古蹟", "義大利麵", "冰淇淋", "許願池"],
-                    "峇里島": ["Villa", "海灘", "SPA", "夕陽"],
-                    "越南峴港": ["佛手橋", "會安古鎮", "海鮮", "便宜"],
-                    "台灣台南": ["小吃", "古蹟", "文青", "老街"],
-                    "希臘聖托里尼": ["藍白小屋", "夕陽", "愛琴海", "蜜月"]
-                };
-
-                const tags = tagOptions[item.name] || ["旅遊", "景點"];
-                const descriptionOptions = {
-                    "日本東京": "東京是Dcard網友最愛的旅遊城市，熱門話題包括迪士尼樂園、淺草寺、新宿御苑賞櫻，以及各種米其林餐廳推薦。",
-                    "韓國首爾": "首爾因韓劇熱潮持續發燒，明洞、弘大商圈討論度高，近期新增熱門景點包括聖水洞咖啡街與漢南洞文青小店。",
-                    "泰國曼谷": "曼谷以高CP值獲得年輕族群喜愛，熱門討論包括新開幕的ICONSIAM商場、網美咖啡廳，以及各種平價米其林美食。",
-                    "台灣花蓮": "花蓮仍是國內旅遊首選，網友推薦七星潭看日出、慕谷慕魚秘境，以及各種特色民宿體驗。",
-                    "法國巴黎": "巴黎熱門討論包括蒙馬特藝術區、塞納河遊船，以及如何避開排隊人潮參觀著名景點。",
-                    "義大利羅馬": "羅馬網友分享如何在三天內玩遍主要景點，以及當地隱藏版美食和避免觀光客陷阱的實用建議。",
-                    "峇里島": "峇里島成為蜜月與閨蜜旅行首選，熱門討論包括烏布梯田、水明漾網美餐廳，以及各種懸崖Villa的住宿體驗。",
-                    "越南峴港": "峴港以佛手橋、會安古鎮等特色景點爆紅，網友熱烈討論高CP值的海鮮及巴拿山歐風城堡。",
-                    "台灣台南": "台南美食話題依舊，近期討論轉向深度文化體驗，如老屋改造的咖啡廳、鹽水月津港燈節等季節性活動。",
-                    "希臘聖托里尼": "聖托里尼以浪漫景色聞名，網友分享最佳觀賞日落地點和住宿推薦。"
-                };
-                const description = descriptionOptions[item.name] || `${item.name}是熱門旅遊地點，有豐富景點。`;
-
-                return {
-                    ...item,
-                    id: index + 1,
-                    category: category,
-                    tags: tags,
-                    description: description
-                };
-            });
-        }
-
-        function generateRankings(category = 'all', searchTerm = '') {
-            const rankingList = document.getElementById('rankingList');
-            rankingList.innerHTML = '';
-            let data = travelData.slice().sort((a, b) => b.count - a.count);
-
-            if (category !== 'all') data = data.filter(item => item.category === category);
-            if (searchTerm) {
-                const term = searchTerm.toLowerCase();
-                data = data.filter(item => item.name.toLowerCase().includes(term));
+            init() {
+                // 等待所有 JS 檔案載入完成
+                setTimeout(() => {
+                    this.prepareData();
+                    this.renderGuides();
+                    this.renderCompanions('all');
+                    this.renderRanking();
+                    this.renderWordCloud();
+                    this.updateStats();
+                    this.setupTabs();
+                    this.setupSearch();
+                }, 100);
             }
-            data = data.slice(0, 5);
+            
+            prepareData() {
+                console.log('檢查 JS 檔案數據...');
 
-            data.forEach((item, index) => {
-                const li = document.createElement('li');
-                li.className = 'ranking-item';
-                const rankNum = index + 1;
-                const rankClass = `rank ${rankNum <= 3 ? 'rank-' + rankNum : ''}`;
+                // 攻略資料：d.js 變數名為 realContentData
+                if (typeof realContentData !== 'undefined') {
+                    this.guideData = realContentData;
+                    console.log(`載入 guideData (realContentData)，共 ${this.guideData.length} 筆`);
+                } else {
+                    console.warn("未找到 d.js 變數 realContentData");
+                }
 
-                li.innerHTML = `
-                    <div class="${rankClass}">${rankNum}</div>
-                    <div class="location-info">
-                        <div class="location-name">${item.name}</div>
-                        <div class="location-tags">
-                            ${item.tags.map(tag => `<span class="tag">#${tag}</span>`).join('')}
+                // 旅伴資料：7.js 變數名為 discussionData
+                if (typeof discussionData !== 'undefined') {
+                    this.companionData = discussionData;
+                    console.log(`載入 companionData (discussionData)，共 ${this.companionData.length} 筆`);
+                } else {
+                    console.warn("未找到 7.js 變數 discussionData");
+                }
+
+                // 熱門地點：data.js 變數名為 topLocations
+                if (typeof topLocations !== 'undefined') {
+                    this.topLocations = topLocations;
+                    console.log(`載入 topLocations，共 ${this.topLocations.length} 筆`);
+                } else {
+                    console.warn("未找到 data.js 變數 topLocations");
+                }
+
+                // 文字雲資料：data.js 變數名為 hotKeywords
+                if (typeof hotKeywords !== 'undefined') {
+                    this.wordCloudData = hotKeywords;
+                    console.log(`載入 hotKeywords，共 ${this.wordCloudData.length} 筆`);
+                } else {
+                    console.warn("未找到 data.js 變數 hotKeywords");
+                    // 如果沒有 hotKeywords，使用 topLocations 作為備用
+                    this.wordCloudData = this.topLocations;
+                }
+
+                console.log(`數據載入完成：攻略 ${this.guideData?.length || 0} 筆，旅伴 ${this.companionData?.length || 0} 筆，排行榜 ${this.topLocations?.length || 0} 筆，文字雲 ${this.wordCloudData?.length || 0} 筆`);
+            }
+
+            renderGuides() {
+                const container = document.getElementById('guideList');
+                if (!this.guideData.length) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">無旅遊攻略數據</div>';
+                    return;
+                }
+
+                container.innerHTML = this.guideData.slice(0, 10).map(item => `
+                    <div class="list-item" onclick="alert('跳轉至文章 ID: ${item.id || ''}')">
+                        <div class="item-title">${item.title || '無標題'}</div>
+                        <div class="item-meta">
+                            <span><i class="fas fa-user"></i> ${item.author || '匿名'}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${item.company || item.position || item.location || '未知地點'}</span>
+                            <span><i class="far fa-calendar"></i> ${item.posted || item.date || '近期'}</span>
+                            <span><i class="fas fa-heart"></i> ${item.likes || 0}</span>
                         </div>
-                        <div class="location-details">
-                            ${item.description}
+                        <div class="item-desc">${item.preview || item.desc || '無內容描述...'}</div>
+                        <div style="margin-top:8px; font-size:0.8rem;">
+                            ${(item.tags || []).map(tag => `<span style="background:#f0f0f0; padding:2px 8px; border-radius:12px; margin-right:5px; color:#666;">#${tag}</span>`).join('')}
                         </div>
                     </div>
-                `;
+                `).join('');
+            }
 
-                li.addEventListener('click', function () {
-                    this.classList.toggle('active');
+            renderCompanions(filterRegion) {
+                const container = document.getElementById('companionList');
+                if (!this.companionData.length) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">無旅伴數據</div>';
+                    return;
+                }
+
+                const data = filterRegion === 'all' ? this.companionData : this.companionData.filter(c => c.region === filterRegion);
+                container.innerHTML = data.length ? data.slice(0, 10).map(item => `
+                    <div class="list-item" onclick="alert('查看旅伴需求: ${item.title || ''}')">
+                        <div class="item-title">${item.title || '無標題'}</div>
+                        <div class="item-meta">
+                            <span><i class="far fa-calendar"></i> ${item.posted || item.date || '未知日期'}</span>
+                            <span><i class="fas fa-users"></i> ${item.needed ? '缺' + item.needed : '人數不限'}</span>
+                            <span><i class="fas fa-venus-mars"></i> ${item.gender || '不拘'}</span>
+                            <span><i class="fas fa-child"></i> ${item.ageRange || '不限年齡'}</span>
+                        </div>
+                        <div style="font-size:0.85rem; color:#666; margin-top:5px;">
+                            <span style="background:#E8F4FD; padding:2px 10px; border-radius:12px; margin-right:8px;">${item.duration || '天數未定'}</span>
+                            <span style="background:#F0F8F0; padding:2px 10px; border-radius:12px; color:green">${item.status || '徵集中'}</span>
+                        </div>
+                    </div>
+                `).join('') : '<div style="padding:20px; text-align:center; color:#999;">此區域暫無資料</div>';
+            }
+
+            renderRanking() {
+                const container = document.getElementById('rankingList');
+                
+                // 使用 data.js 中的 topLocations 資料
+                if (!this.topLocations || !this.topLocations.length) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">無排行數據</div>';
+                    return;
+                }
+
+                // 顯示前10個
+                const rankingData = this.topLocations.slice(0, 10);
+
+                container.innerHTML = rankingData.map((item, i) => {
+                    // 確保資料格式正確
+                    const name = item.name || item.text || item.destination || '未知地點';
+                    const count = item.count || item.size || 0;
+                    const region = item.region || '亞洲';
+                    
+                    return `
+                    <div class="rank-item">
+                        <div class="rank-num">${i + 1}</div>
+                        <div style="flex:1; font-weight:500;">
+                            ${name} <span style="font-size:0.7rem; color:#999; margin-left:5px;">(${region})</span>
+                        </div>
+                        <div style="color:#aaa; font-size:0.8rem; display:flex; align-items:center;">
+                            <i class="fas fa-search" style="margin-right:4px;"></i> ${count} ${i < 3 ? '<i class="fas fa-fire" style="color:#FF7E67; margin-left:5px;"></i>' : ''}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+
+            renderWordCloud() {
+                const container = document.getElementById('wordCloud');
+                
+                if (!this.wordCloudData || !this.wordCloudData.length) {
+                    container.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">無標籤數據</div>';
+                    return;
+                }
+
+                // 處理資料格式，確保有 text 屬性
+                const processedData = this.wordCloudData.map(item => {
+                    if (typeof item === 'string') {
+                        return {
+                            text: item,
+                            size: Math.floor(Math.random() * 10) + 14, // 隨機大小 14-24
+                            color: this.getRandomColor(),
+                            count: 1
+                        };
+                    } else if (item && typeof item === 'object') {
+                        return {
+                            text: item.text || item.name || item.word || item.keyword || String(item),
+                            size: item.size || item.count || 16,
+                            color: item.color || this.getRandomColor(),
+                            count: item.count || 1
+                        };
+                    }
+                    return { text: String(item), size: 16, color: this.getRandomColor(), count: 1 };
                 });
 
-                rankingList.appendChild(li);
-            });
-        }
+                // 隨機排序
+                const shuffled = [...processedData].sort(() => Math.random() - 0.5);
 
-        function generateWordCloud() {
-            const canvas = document.getElementById('wordcloud');
-            const list = travelData.map(item => [item.name, item.count]);
-            travelData.forEach(item => {
-                item.tags.forEach(tag => list.push([tag, Math.max(10, item.count / 5)]));
-            });
-            WordCloud(canvas, {
-                list: list,
-                gridSize: 12,
-                weightFactor: 2,
-                fontFamily: 'Segoe UI, Microsoft JhengHei, sans-serif',
-                color: () => ['#FFD166', '#EF476F', '#06D6A0', '#118AB2', '#FF9A9E', '#A7D2CB', '#F2D388', '#C9ADA7'][Math.floor(Math.random() * 8)],
-                rotateRatio: 0.5,
-                rotationSteps: 2,
-                backgroundColor: 'transparent'
-            });
-        }
+                // 生成文字雲
+                container.innerHTML = shuffled.map(word => {
+                    const fontSize = Math.max(12, word.size || 16);
+                    const fontWeight = fontSize > 20 ? '700' : (fontSize > 16 ? '600' : '500');
+                    const color = word.color || this.getRandomColor();
+                    const text = word.text || String(word);
+                    
+                    return `
+                        <span class="cloud-word" 
+                            style="font-size: ${fontSize}px; color: ${color}; font-weight: ${fontWeight};"
+                            data-word="${text}"
+                            title="${text} (出現次數: ${word.count || 1})">
+                            ${text}
+                        </span>
+                    `;
+                }).join('');
 
-        function generateTrendChart() {
-            const ctx = document.getElementById('trendChart').getContext('2d');
-            const top5 = travelData.slice(0, 5);
-            const labels = ['1月', '2月', '3月', '4月', '5月', '6月'];
-            const datasets = top5.map((item, index) => {
-                const colors = ['#FF9A9E', '#A7D2CB', '#F2D388', '#C9ADA7', '#B8B8F3'];
-                const data = [];
-                let baseValue = item.count * 0.5;
-                for (let i = 0; i < 6; i++) {
-                    baseValue = baseValue * (1 + (Math.random() * 0.2 - 0.05));
-                    data.push(Math.round(baseValue));
+                // 添加點擊事件
+                container.querySelectorAll('.cloud-word').forEach(word => {
+                    word.addEventListener('click', () => {
+                        const term = word.dataset.word;
+                        document.querySelector('.search-input').value = term;
+                        this.performSearch(term);
+                    });
+                });
+            }
+
+            getRandomColor() {
+                const colors = ["#0F4C75","#FF7E67","#4ECDC4","#FFD166","#06D6A0","#118AB2","#EF476F","#073B4C","#7209B7","#FF9F1C"];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+
+            updateStats() {
+                // 檢查元素是否存在再更新
+                const elGuide = document.getElementById('statGuide');
+                const elCompanion = document.getElementById('statCompanion');
+                const elBadgeGuide = document.getElementById('badgeGuide');
+                const elBadgeCompanion = document.getElementById('badgeCompanion');
+
+                if(elGuide) elGuide.textContent = this.guideData.length;
+                if(elCompanion) elCompanion.textContent = this.companionData.length;
+                if(elBadgeGuide) elBadgeGuide.textContent = `${this.guideData.length} 篇`;
+                if(elBadgeCompanion) elBadgeCompanion.textContent = `${this.companionData.length} 則`;
+            }
+
+            setupTabs() {
+                document.querySelectorAll('#regionTabs .tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        document.querySelectorAll('#regionTabs .tab').forEach(t => t.classList.remove('active'));
+                        tab.classList.add('active');
+                        this.renderCompanions(tab.dataset.region);
+                    });
+                });
+            }
+
+            setupSearch() {
+                const searchBtn = document.querySelector('.search-btn');
+                const searchInput = document.querySelector('.search-input');
+                const runSearch = () => this.performSearch(searchInput.value.trim());
+                searchBtn.addEventListener('click', runSearch);
+                searchInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') runSearch(); });
+            }
+
+            performSearch(term) {
+                if (!term) {
+                    this.renderGuides();
+                    this.renderCompanions('all');
+                    return;
                 }
-                data[5] = item.count;
-                return {
-                    label: item.name,
-                    data: data,
-                    borderColor: colors[index],
-                    backgroundColor: `${colors[index]}20`,
-                    tension: 0.3,
-                    fill: true
-                };
-            });
+                const lowerTerm = term.toLowerCase();
 
-            new Chart(ctx, {
-                type: 'line',
-                data: { labels: labels, datasets: datasets },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top', labels: { color: '#fff' } } },
-                    scales: {
-                        x: { ticks: { color: '#fff' }, grid: { color: '#ffffff20' } },
-                        y: { ticks: { color: '#fff' }, grid: { color: '#ffffff20' } }
-                    }
-                }
-            });
+                const filteredGuides = this.guideData.filter(item =>
+                    (item.title && item.title.toLowerCase().includes(lowerTerm)) ||
+                    (item.company && item.company.toLowerCase().includes(lowerTerm)) ||
+                    (item.position && item.position.toLowerCase().includes(lowerTerm)) ||
+                    (item.location && item.location.toLowerCase().includes(lowerTerm)) ||
+                    (item.tags && item.tags.some(t => t.toLowerCase().includes(lowerTerm))) ||
+                    (item.preview && item.preview.toLowerCase().includes(lowerTerm)) ||
+                    (item.desc && item.desc.toLowerCase().includes(lowerTerm))
+                );
+
+                const filteredCompanions = this.companionData.filter(item =>
+                    (item.title && item.title.toLowerCase().includes(lowerTerm)) ||
+                    (item.destination && item.destination.toLowerCase().includes(lowerTerm))
+                );
+
+                document.getElementById('guideList').innerHTML = filteredGuides.length ? filteredGuides.map(item => `
+                    <div class="list-item">
+                        <div class="item-title">${item.title || '無標題'}</div>
+                        <div class="item-meta">
+                            <span><i class="fas fa-user"></i> ${item.author || '匿名'}</span>
+                            <span><i class="fas fa-map-marker-alt"></i> ${item.company || item.position || item.location || '未知地點'}</span>
+                            <span style="color:red">搜尋結果</span>
+                        </div>
+                    </div>`).join('') : '<div style="padding:20px; text-align:center;">未找到相關攻略</div>';
+
+                document.getElementById('companionList').innerHTML = filteredCompanions.length ? filteredCompanions.map(item => `
+                    <div class="list-item">
+                        <div class="item-title">${item.title || '無標題'}</div>
+                        <div class="item-meta">
+                            <span><i class="fas fa-users"></i> ${item.needed ? '缺' + item.needed : '人數不限'}</span>
+                            <span style="color:red">搜尋結果</span>
+                        </div>
+                    </div>`).join('') : '<div style="padding:20px; text-align:center;">未找到相關旅伴</div>';
+            }
         }
 
-        function generateRegionChart() {
-            const ctx = document.getElementById('regionChart').getContext('2d');
-            const regions = {};
-            travelData.forEach(item => { regions[item.category] = (regions[item.category] || 0) + 1; });
-            new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(regions),
-                    datasets: [{
-                        data: Object.values(regions),
-                        backgroundColor: ['#FFD166', '#EF476F', '#06D6A0', '#118AB2', '#FF9A9E', '#A7D2CB', '#F2D388', '#C9ADA7']
-                    }]
-                },
-                options: { plugins: { legend: { labels: { color: '#fff' } } }, responsive: true, maintainAspectRatio: false }
-            });
-        }
-
-        document.getElementById('searchInput').addEventListener('input', e => {
-            generateRankings(document.querySelector('.tab.active').dataset.category, e.target.value);
-        });
-
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                generateRankings(tab.dataset.category, document.getElementById('searchInput').value);
-            });
-        });
-
-        enhanceData();
-        generateRankings();
-        generateWordCloud();
-        generateTrendChart();
-        generateRegionChart();
+        document.addEventListener('DOMContentLoaded', () => new App());
     </script>
 </body>
-
 </html>
