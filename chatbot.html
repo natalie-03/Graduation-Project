@@ -1,1454 +1,592 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>chatbot小幫手</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.1.0/src/wordcloud2.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-    <!-- 引入外部數據文件 -->
-    <script src="./js/grad_trends.js"></script>
-    <script src="./js/food_trends.js"></script>
-    <script src="./js/data.js"></script>
-
+    <title>NEXUS AI | 研究所智能中樞</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00f2fe;
-            --secondary: #4facfe;
-            --accent: #667eea;
-            --dark: #0f172a;
-            --darker: #0a0f1c;
-            --light: #1e293b;
-            --text: #e2e8f0;
-            --text-secondary: #94a3b8;
+            --bg-color: #0f172a;
+            --sidebar-bg: rgba(30, 41, 59, 0.7);
+            --chat-bg: rgba(15, 23, 42, 0.8);
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.4);
+            --accent: #06b6d4;
+            --text-main: #f1f5f9;
+            --text-dim: #94a3b8;
+            --border: rgba(148, 163, 184, 0.2);
+            --glass: rgba(255, 255, 255, 0.05);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
-            color: var(--text);
-            min-height: 100vh;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-
-        .tech-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background:
-                radial-gradient(circle at 20% 80%, rgba(79, 172, 254, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 40% 40%, rgba(0, 242, 254, 0.05) 0%, transparent 50%);
-            z-index: -1;
-        }
-
-        .grid-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image:
-                linear-gradient(rgba(79, 172, 254, 0.1) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(79, 172, 254, 0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            z-index: -1;
-            opacity: 0.3;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            height: 90vh;
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.15) 0%, transparent 20%);
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
+            height: 100vh;
             display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            text-align: center;
-            padding: 20px 0;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: 800;
-        }
-
-        .subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-        }
-
-        .main-content {
-            display: flex;
-            gap: 20px;
-            flex: 1;
-            min-height: 0;
-        }
-
-        .chatbot-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(79, 172, 254, 0.2);
-            border-radius: 16px;
+            justify-content: center;
+            align-items: center;
             overflow: hidden;
         }
 
-        .chat-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(79, 172, 254, 0.2);
-            text-align: center;
+        .nexus-container {
+            width: 95vw;
+            height: 92vh;
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 20px;
+            max-width: 1600px;
         }
 
-        .chat-header h2 {
+        /* 側邊欄設計 */
+        .sidebar {
+            background: var(--sidebar-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideInLeft 0.5s ease;
+        }
+
+        .brand {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 30px;
             display: flex;
             align-items: center;
-            justify-content: center;
             gap: 10px;
-            color: var(--text);
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .chat-messages {
+        .brand i { color: var(--accent); text-shadow: 0 0 10px var(--accent); }
+
+        .menu-title {
+            font-size: 0.75rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 15px;
+            padding-left: 5px;
+        }
+
+        .category-list {
             flex: 1;
-            padding: 20px;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-        }
-
-        .chat-messages::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .chat-messages::-webkit-scrollbar-track {
-            background: rgba(30, 41, 59, 0.6);
-        }
-
-        .chat-messages::-webkit-scrollbar-thumb {
-            background: linear-gradient(var(--primary), var(--secondary));
-            border-radius: 3px;
-        }
-
-        .message {
-            max-width: 80%;
-            padding: 15px;
-            border-radius: 18px;
-            line-height: 1.5;
-            position: relative;
-            animation: fadeInUp 0.3s ease;
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .user-message {
-            align-self: flex-end;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: var(--dark);
-            border-bottom-right-radius: 5px;
-        }
-
-        .bot-message {
-            align-self: flex-start;
-            background: rgba(42, 77, 105, 0.6);
-            border: 1px solid rgba(79, 172, 254, 0.3);
-            border-bottom-left-radius: 5px;
-        }
-
-        .quick-replies {
-            display: flex;
-            flex-wrap: wrap;
             gap: 8px;
-            margin-top: 10px;
         }
 
-        .quick-reply {
-            background: rgba(79, 172, 254, 0.1);
-            border: 1px solid rgba(79, 172, 254, 0.3);
-            color: var(--text);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
+        .category-btn {
+            background: var(--glass);
+            border: 1px solid transparent;
+            color: var(--text-dim);
+            padding: 12px 15px;
+            border-radius: 12px;
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .quick-reply:hover {
-            background: rgba(79, 172, 254, 0.2);
-            transform: translateY(-2px);
-        }
-
-        .chat-input {
-            padding: 20px;
-            border-top: 1px solid rgba(79, 172, 254, 0.2);
+            text-align: left;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
             display: flex;
-            gap: 10px;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .chat-input input {
-            flex: 1;
-            padding: 12px 16px;
-            background: rgba(30, 41, 59, 0.8);
-            border: 1px solid rgba(79, 172, 254, 0.3);
-            border-radius: 25px;
-            color: var(--text);
-            outline: none;
-            transition: all 0.3s ease;
+        .category-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            transform: translateX(5px);
         }
 
-        .chat-input input:focus {
+        .category-btn.active {
+            background: rgba(99, 102, 241, 0.15);
             border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(0, 242, 254, 0.1);
+            color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        .send-btn {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
+        .category-tag {
+            font-size: 0.7rem;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        .sys-status {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.8rem;
+            color: var(--text-dim);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #22c55e;
             border-radius: 50%;
-            width: 50px;
-            height: 50px;
+            box-shadow: 0 0 8px #22c55e;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.error { background: #ef4444; box-shadow: 0 0 8px #ef4444; }
+
+        /* 主聊天區 */
+        .main-interface {
+            background: var(--chat-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: fadeIn 0.8s ease;
+        }
+
+        .header {
+            padding: 15px 30px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(15, 23, 42, 0.9);
+        }
+
+        .context-info h2 { font-size: 1.1rem; font-weight: 500; }
+        .context-info p { font-size: 0.85rem; color: var(--text-dim); margin-top: 4px; display: flex; align-items: center; gap: 6px; }
+
+        /* --- HOME BUTTON STYLES (UPDATED) --- */
+        .home-btn {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .home-btn:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 15px var(--primary-glow);
+            transform: translateY(-1px);
+        }
+
+        .chat-area {
+            flex: 1;
+            padding: 30px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .msg {
+            display: flex;
+            gap: 15px;
+            max-width: 85%;
+            opacity: 0;
+            animation: msgSlideUp 0.3s forwards;
+        }
+
+        .msg.user { align-self: flex-end; flex-direction: row-reverse; }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            color: var(--dark);
+            flex-shrink: 0;
+            font-size: 1.1rem;
         }
 
-        .send-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0, 242, 254, 0.4);
-        }
+        .avatar.bot { background: rgba(6, 182, 212, 0.1); color: var(--accent); border: 1px solid rgba(6, 182, 212, 0.3); }
+        .avatar.user { background: rgba(99, 102, 241, 0.1); color: var(--primary); border: 1px solid rgba(99, 102, 241, 0.3); }
 
-        .visualization-section {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .stats-cards {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-
-        .stat-card {
+        .bubble {
             background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(79, 172, 254, 0.2);
+            padding: 16px 20px;
             border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            transition: all 0.3s ease;
-        }
-
-        .stat-card:hover {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-        }
-
-        .stat-label {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .chart-container {
-            flex: 1;
-            background: rgba(30, 41, 59, 0.6);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(79, 172, 254, 0.2);
-            border-radius: 12px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .chart-container h3 {
-            margin-bottom: 15px;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .chart-area {
-            flex: 1;
+            border: 1px solid var(--border);
+            line-height: 1.6;
+            font-size: 0.95rem;
             position: relative;
         }
 
-        canvas {
-            width: 100% !important;
-            height: 100% !important;
+        .msg.bot .bubble { border-top-left-radius: 2px; }
+        .msg.user .bubble { background: var(--primary); color: white; border: none; border-top-right-radius: 2px; box-shadow: 0 0 15px var(--primary-glow); }
+
+        .result-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-left: 3px solid var(--accent);
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 0 8px 8px 0;
         }
 
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 2px solid rgba(79, 172, 254, 0.3);
-            border-radius: 50%;
-            border-top-color: var(--primary);
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
+        .result-title { color: var(--accent); font-weight: 700; margin-bottom: 8px; display: block; font-family: 'JetBrains Mono', monospace; }
+        .highlight { background: rgba(255, 215, 0, 0.2); color: #ffd700; padding: 0 4px; border-radius: 4px; }
+
+        .input-zone {
+            padding: 20px 30px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid var(--border);
         }
 
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+        .input-container {
+            position: relative;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex;
+            transition: 0.3s;
         }
+
+        .input-container:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.1);
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 15px 20px;
+            color: var(--text-main);
+            font-family: 'Noto Sans TC', sans-serif;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .send-btn {
+            background: transparent;
+            border: none;
+            color: var(--primary);
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.3s;
+        }
+
+        .send-btn:hover { color: #fff; text-shadow: 0 0 10px var(--primary); }
+
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        @keyframes slideInLeft { from { transform: translateX(-20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes msgSlideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
         @media (max-width: 768px) {
-            .main-content {
-                flex-direction: column;
-            }
-
-            .chatbot-section,
-            .visualization-section {
-                min-height: 400px;
-            }
-
-            .stats-cards {
-                grid-template-columns: 1fr;
-            }
-
-            h1 {
-                font-size: 2rem;
-            }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 25px;
-            background: rgba(30, 41, 59, 0.9);
-            color: var(--text);
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transform: translateX(200%);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            border: 1px solid rgba(79, 172, 254, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .notification.show {
-            transform: translateX(0);
+            .nexus-container { grid-template-columns: 1fr; width: 100%; height: 100%; border-radius: 0; }
+            .sidebar { display: none; }
         }
     </style>
 </head>
-
 <body>
-    <div class="tech-bg"></div>
-    <div class="grid-overlay"></div>
 
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-robot"></i> chatbot小幫手</h1>
-            <p class="subtitle">智能聊天機器人</p>
-        </div>
+    <div class="nexus-container">
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="fa-solid fa-cube"></i> NEXUS AI
+            </div>
+            
+            <div class="menu-title">DATA MODULES</div>
+            <div class="category-list" id="categoryList">
+                </div>
 
-        <div class="main-content">
-            <!-- 聊天機器人區域 -->
-            <div class="chatbot-section">
-                <div class="chat-header">
-                    <h2><i class="fas fa-comments"></i> 智能對話</h2>
+            <div class="sys-status">
+                <div class="status-dot" id="sysDot"></div>
+                <span id="sysText">SYSTEM INITIALIZING...</span>
+            </div>
+        </aside>
+
+        <main class="main-interface">
+            <header class="header">
+                <div class="context-info">
+                    <h2>智能問答終端</h2>
+                    <p id="currentContext"><i class="fa-solid fa-layer-group"></i> 等待指令輸入...</p>
                 </div>
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message bot-message">
-                        <p>👋 您好！我是chatbot小幫手，可以為您提供：</p>
-                        <div class="quick-replies">
-                            <div class="quick-reply" onclick="sendMessage('研究所分析')">
-                                研究所數據分析
-                            </div>
-                            <div class="quick-reply" onclick="sendMessage('美食分析')">
-                                美食趨勢分析
-                            </div>
-                            <div class="quick-reply" onclick="sendMessage('學校排名')">
-                                學校熱門排名
-                            </div>
-                            <div class="quick-reply" onclick="sendMessage('景點排行')">
-                                景點排行
-                            </div>
-                        </div>
-                        <p>請選擇您感興趣的主題，或直接輸入您的問題！</p>
-                    </div>
+                
+                
+                   <a href="index.html" class="home-btn"><i class="fas fa-arrow-left"></i> 返回首頁</a>
+           
+            </header>
+
+            <div class="chat-area" id="chatWindow">
                 </div>
-                <div class="chat-input">
-                    <input type="text" id="userInput" placeholder="輸入您的問題..." onkeypress="handleKeyPress(event)">
-                    <button class="send-btn" onclick="sendUserMessage()">
-                        <i class="fas fa-paper-plane"></i>
+
+            <div class="input-zone">
+                <div class="input-container">
+                    <input type="text" id="userInput" placeholder="請先選擇左側資料模組..." disabled onkeypress="handleEnter(event)">
+                    <button class="send-btn" onclick="sendMessage()">
+                        <i class="fa-solid fa-paper-plane"></i>
                     </button>
                 </div>
             </div>
-
-            <!-- 數據可視化區域 -->
-            <div class="visualization-section">
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalSchools">-</div>
-                        <div class="stat-label">熱門學校</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalCuisines">-</div>
-                        <div class="stat-label">熱門菜系</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalArticles">-</div>
-                        <div class="stat-label">分析文章數</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="totalDepartments">-</div>
-                        <div class="stat-label">熱門科系</div>
-                    </div>
-                </div>
-                <div class="chart-container">
-                    <h3><i class="fas fa-chart-bar"></i> 數據可視化</h3>
-                    <div class="chart-area">
-                        <canvas id="mainChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <div class="notification" id="notification">
-        <i class="fas fa-check-circle"></i> <span id="notificationText">操作成功</span>
-    </div>
+    <script src="./js/chatbot_kb.js"></script>
 
     <script>
-        // 全局變數
-        let currentChart = null;
-        let currentMode = 'welcome'; // welcome, grad, food, spot
+        const state = {
+            data: {},
+            currentTheme: null,
+            isReady: false
+        };
 
-        // 顯示通知
-        function showNotification(message) {
-            const notification = document.getElementById('notification');
-            const textElement = document.getElementById('notificationText');
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(initializeSystem, 800);
+        });
 
-            textElement.textContent = message;
-            notification.classList.add('show');
+        function initializeSystem() {
+            const sysText = document.getElementById('sysText');
+            const sysDot = document.getElementById('sysDot');
 
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
+            if (typeof chatbotKnowledgeBase === 'undefined') {
+                sysText.textContent = "CONNECTION FAILED";
+                sysText.style.color = "#ef4444";
+                sysDot.classList.add('error');
+                
+                addBotMessage(`
+                    <div style="color:#ef4444; font-weight:bold;">⚠️ 嚴重錯誤：資料庫連結失敗</div>
+                    <br>無法讀取 <code>js/chatbot_kb.js</code>。<br>
+                    系統檢測到資料檔案遺失或損毀。<br><br>
+                    請確認 Python 生成腳本是否已執行。
+                `);
+                return;
+            }
+
+            state.data = chatbotKnowledgeBase;
+            state.isReady = true;
+            sysText.textContent = "SYSTEM ONLINE";
+            
+            renderSidebar();
+            typeWriterWelcome();
         }
 
-        // 添加消息到聊天室
-        function addMessage(text, isUser = false) {
-            const chatMessages = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${isUser ? 'user-message' : 'bot-message'}`;
+        function renderSidebar() {
+            const list = document.getElementById('categoryList');
+            list.innerHTML = '';
+            
+            const themes = Object.keys(state.data);
+            if (themes.length === 0) {
+                list.innerHTML = '<div style="padding:10px; color:#64748b;">[NO DATA]</div>';
+                return;
+            }
 
-            const messageContent = document.createElement('div');
-            messageContent.innerHTML = text;
-            messageDiv.appendChild(messageContent);
-
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
-
-            return messageDiv;
+            themes.forEach(theme => {
+                const count = state.data[theme].length;
+                const btn = document.createElement('div');
+                btn.className = 'category-btn';
+                btn.innerHTML = `
+                    <span><i class="fa-solid fa-folder"></i> ${theme}</span>
+                    <span class="category-tag">${count}</span>
+                `;
+                btn.onclick = () => selectTheme(theme, btn);
+                list.appendChild(btn);
+            });
         }
 
-        // 發送用戶消息
-        function sendUserMessage() {
+        function selectTheme(theme, btnElement) {
+            state.currentTheme = theme;
+            
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            btnElement.classList.add('active');
+
+            document.getElementById('currentContext').innerHTML = 
+                `<i class="fa-solid fa-check-circle" style="color:var(--accent)"></i> 模組已掛載：${theme}`;
+            
             const input = document.getElementById('userInput');
-            const message = input.value.trim();
+            input.disabled = false;
+            input.placeholder = `請輸入關於 [${theme}] 的問題...`;
+            input.focus();
 
-            if (message) {
-                sendMessage(message);
-                input.value = '';
-            }
+            addBotMessage(`已切換至 <strong>${theme}</strong> 資料庫。<br>檢索範圍包含 ${state.data[theme].length} 筆資料。請輸入關鍵字進行查詢。`);
         }
 
-        // 處理按鍵事件
-        function handleKeyPress(event) {
-            if (event.key === 'Enter') {
-                sendUserMessage();
-            }
+        // 升級版：重置系統到首頁
+        function resetSystem() {
+            // 清除狀態
+            state.currentTheme = null;
+            
+            // UI 還原
+            document.getElementById('currentContext').innerHTML = `<i class="fa-solid fa-layer-group"></i> 等待指令輸入...`;
+            
+            // 移除選單高亮
+            document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+            
+            // 鎖定輸入框
+            const input = document.getElementById('userInput');
+            input.disabled = true;
+            input.placeholder = "請先選擇左側資料模組...";
+            input.value = '';
+            
+            // 清空聊天並顯示歡迎詞
+            document.getElementById('chatWindow').innerHTML = '';
+            typeWriterWelcome();
         }
 
-        // 主要消息處理函數
-        function sendMessage(message) {
-            // 添加用戶消息
-            addMessage(message, true);
+        function handleEnter(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
 
-            // 顯示正在輸入指示器
-            const loadingMessage = addMessage('思考中<span class="loading"></span>', false);
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+            if (!state.currentTheme) return;
 
-            // 模擬AI思考時間
+            addUserMessage(text);
+            input.value = '';
+
+            const chatWindow = document.getElementById('chatWindow');
+            const loadingId = 'loading-' + Date.now();
+            const loadingHTML = `
+                <div class="msg bot" id="${loadingId}">
+                    <div class="avatar bot"><i class="fa-solid fa-microchip"></i></div>
+                    <div class="bubble" style="display:flex; gap:5px; align-items:center;">
+                        <span>ANALYZING</span>
+                        <div class="status-dot" style="width:6px; height:6px; background:var(--accent);"></div>
+                    </div>
+                </div>`;
+            
+            chatWindow.insertAdjacentHTML('beforeend', loadingHTML);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
             setTimeout(() => {
-                // 移除加載指示器
-                loadingMessage.remove();
-
-                // 處理消息並生成回覆
-                processMessage(message);
-            }, 1000);
+                document.getElementById(loadingId).remove();
+                processQuery(text);
+            }, 600);
         }
 
-        // 處理消息內容
-        function processMessage(message) {
-            const lowerMessage = message.toLowerCase();
-            let response = '';
-            let quickReplies = [];
-
-            if (lowerMessage.includes('研究所') || lowerMessage.includes('學校') || lowerMessage.includes('科系')) {
-                currentMode = 'grad';
-                response = handleGradQuery(message);
-                quickReplies = [
-                    '學校熱門排名',
-                    '科系分析',
-                    '話題分布',
-                    '返回主選單'
-                ];
-            } else if (lowerMessage.includes('美食') || lowerMessage.includes('菜系') || lowerMessage.includes('餐廳')) {
-                currentMode = 'food';
-                response = handleFoodQuery(message);
-                quickReplies = [
-                    '菜系排行榜',
-                    '餐廳類型',
-                    '熱門菜色',
-                    '返回主選單'
-                ];
-            } else if (lowerMessage.includes('景點') || lowerMessage.includes('旅遊') || lowerMessage.includes('觀光')) {
-                currentMode = 'spot';
-                response = handleSpotQuery(message);
-                quickReplies = [
-                    '熱門景點排行',
-                    '景點類型分析',
-                    '地區分布',
-                    '返回主選單'
-                ];
-            } else if (lowerMessage.includes('熱門地點') || lowerMessage.includes('地點排行')) {
-                currentMode = 'spot';
-                response = showSpotRanking();
-                quickReplies = [
-                    '景點類型分析',
-                    '地區分布',
-                    '返回主選單'
-                ];
-            } else if (lowerMessage.includes('排名') || lowerMessage.includes('熱門')) {
-                if (currentMode === 'grad') {
-                    response = showSchoolRanking();
-                } else if (currentMode === 'food') {
-                    response = showCuisineRanking();
-                } else if (currentMode === 'spot') {
-                    response = showSpotRanking();
-                } else {
-                    response = '請先選擇您想查詢的主題：研究所分析 、 美食分析、景點分析';
-                    quickReplies = ['研究所分析', '美食分析', '景點分析'];
-                }
-            } else if (lowerMessage.includes('主選單') || lowerMessage.includes('返回')) {
-                currentMode = 'welcome';
-                response = '👋 歡迎回到主選單！請選擇您感興趣的主題：';
-                quickReplies = ['研究所分析', '美食分析', '景點分析', '學校排名'];
-            } else {
-                response = '抱歉，我不太理解您的問題。您可以詢問關於研究所數據、美食分析或景點資訊。';
-                quickReplies = ['研究所分析', '美食分析', '景點分析', '幫助'];
-            }
-
-            const botMessage = addMessage(response, false);
-
-            if (quickReplies.length > 0) {
-                const quickRepliesDiv = document.createElement('div');
-                quickRepliesDiv.className = 'quick-replies';
-
-                quickReplies.forEach(reply => {
-                    const replyBtn = document.createElement('div');
-                    replyBtn.className = 'quick-reply';
-                    replyBtn.textContent = reply;
-                    replyBtn.onclick = () => sendMessage(reply);
-                    quickRepliesDiv.appendChild(replyBtn);
+        function processQuery(query) {
+            const themeData = state.data[state.currentTheme];
+            const keywords = query.toLowerCase().split(' ').filter(k => k.length > 0);
+            
+            let results = themeData.map(item => {
+                let score = 0;
+                keywords.forEach(kw => {
+                    if (item.title.toLowerCase().includes(kw)) score += 10;
+                    if (item.content.toLowerCase().includes(kw)) score += 3;
                 });
+                return { ...item, score };
+            }).filter(item => item.score > 0);
 
-                botMessage.appendChild(quickRepliesDiv);
-            }
+            results.sort((a, b) => b.score - a.score);
+            const topResults = results.slice(0, 3);
 
-            updateStats();
-        }
+            if (topResults.length > 0) {
+                let responseHTML = `找到 ${results.length} 筆相關資料：<br>`;
+                topResults.forEach(item => {
+                    let contentDisplay = item.content.length > 80 ? item.content.substring(0, 80) + '...' : item.content;
+                    keywords.forEach(kw => {
+                        const reg = new RegExp(kw, 'gi');
+                        contentDisplay = contentDisplay.replace(reg, match => `<span class="highlight">${match}</span>`);
+                    });
 
-        // 添加景點查詢處理函數
-        function handleSpotQuery(message) {
-            const lowerMessage = message.toLowerCase();
-
-            if (lowerMessage.includes('景點') || lowerMessage.includes('排行')) {
-                return showSpotRanking();
-            } else if (lowerMessage.includes('類型')) {
-                return showSpotTypeAnalysis();
-            } else if (lowerMessage.includes('地區')) {
-                return showAreaAnalysis();
+                    responseHTML += `
+                        <div class="result-card">
+                            <span class="result-title">
+                                <i class="fa-solid fa-database"></i> ${item.title}
+                            </span>
+                            <div style="color:var(--text-dim); font-size:0.9rem;">
+                                ${contentDisplay}
+                            </div>
+                        </div>
+                    `;
+                });
+                addBotMessage(responseHTML);
             } else {
-                // 檢查spotTrends是否存在，如果不存在使用預設數據
-                if (typeof spotTrends === 'undefined') {
-                    return '🏞️ 景點分析\n\n目前無法載入景點數據，請檢查 data.js 檔案。';
-                }
-
-                return `🏞️ 景點分析\n\n目前資料庫包含：\n• ${spotTrends.spots.length} 個熱門景點\n• ${spotTrends.spot_types.length} 種景點類型\n• ${spotTrends.total_articles} 篇旅遊文章\n\n請問您想了解什麼？`;
+                addBotMessage(`
+                    在 [${state.currentTheme}] 模組中未搜尋到與「${query}」相關的資料。<br>
+                    <span style="color:var(--text-dim); font-size:0.85rem;">建議縮短關鍵字或更換搜尋詞彙。</span>
+                `);
             }
         }
 
-        // 顯示景點排名
-        function showSpotRanking() {
-            // 如果spotTrends不存在，使用預設數據
-            if (typeof spotTrends === 'undefined') {
-                return '景點數據暫不可用，請檢查 data.js 檔案。';
-            }
-
-            const topSpots = spotTrends.spots.slice(0, 8);
-            let response = '🏞️ 熱門旅遊地點排行：\n\n';
-
-            topSpots.forEach((spot, index) => {
-                const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣'];
-                response += `${medals[index]} ${spot.name} (${spot.area}) - ${spot.count} 次提及\n`;
-            });
-
-            response += `\n📊 總計 ${spotTrends.total_articles} 篇旅遊相關文章`;
-
-            updateChart('spot');
-            return response;
+        function addBotMessage(html) {
+            const chatWindow = document.getElementById('chatWindow');
+            const div = document.createElement('div');
+            div.className = 'msg bot';
+            div.innerHTML = `
+                <div class="avatar bot"><i class="fa-solid fa-robot"></i></div>
+                <div class="bubble">${html}</div>
+            `;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
         }
 
-        // 顯示景點類型分析
-        function showSpotTypeAnalysis() {
-            if (typeof spotTrends === 'undefined' || !spotTrends.spot_types) {
-                return '景點數據暫不可用';
-            }
+        function addUserMessage(text) {
+            const chatWindow = document.getElementById('chatWindow');
+            const div = document.createElement('div');
+            div.className = 'msg user';
+            div.innerHTML = `
+                <div class="avatar user"><i class="fa-solid fa-user"></i></div>
+                <div class="bubble">${text}</div>
+            `;
+            chatWindow.appendChild(div);
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+        }
 
-            updateChart('spot_type');
+        function typeWriterWelcome() {
+            const chatWindow = document.getElementById('chatWindow');
+            chatWindow.innerHTML = '';
             
-            let response = '📊 旅遊類型分析：\n\n';
-            spotTrends.spot_types.forEach(type => {
-                response += `• ${type.name}: ${type.count} 次提及\n`;
-            });
+            const div = document.createElement('div');
+            div.className = 'msg bot';
+            div.innerHTML = `
+                <div class="avatar bot"><i class="fa-solid fa-robot"></i></div>
+                <div class="bubble" id="welcomeBubble"></div>
+            `;
+            chatWindow.appendChild(div);
             
-            return response;
-        }
-
-        // 顯示地區分布分析
-        function showAreaAnalysis() {
-            if (typeof spotTrends === 'undefined' || !spotTrends.areas) {
-                return '景點數據暫不可用';
-            }
-
-            updateChart('area');
+            const text = "歡迎使用 NEXUS 研究所智能中樞。\n請由左側選擇資料模組以開始作業。";
+            let i = 0;
+            const target = div.querySelector('#welcomeBubble');
             
-            let response = '🗺️ 地區分布分析：\n\n';
-            spotTrends.areas.forEach(area => {
-                response += `• ${area.name}: ${area.count} 次提及\n`;
-            });
-            
-            return response;
-        }
-
-        // 處理研究所相關查詢
-        function handleGradQuery(message) {
-            const lowerMessage = message.toLowerCase();
-
-            if (lowerMessage.includes('學校') || lowerMessage.includes('排名')) {
-                return showSchoolRanking();
-            } else if (lowerMessage.includes('科系')) {
-                return showDepartmentAnalysis();
-            } else if (lowerMessage.includes('話題')) {
-                return showTopicAnalysis();
-            } else {
-                if (typeof gradTrends === 'undefined') {
-                    return '🎓 研究所數據分析\n\n目前無法載入研究所數據，請稍後再試。';
+            function type() {
+                if (i < text.length) {
+                    target.innerHTML += text.charAt(i) === '\n' ? '<br>' : text.charAt(i);
+                    i++;
+                    setTimeout(type, 30);
                 }
-
-                return `🎓 研究所數據分析\n\n目前資料庫包含：\n• ${gradTrends.schools.length} 所熱門學校\n• ${gradTrends.departments.length} 個熱門科系\n• ${gradTrends.total_articles} 篇分析文章\n\n請問您想了解什麼？`;
             }
+            type();
         }
-
-        // 處理美食相關查詢
-        function handleFoodQuery(message) {
-            const lowerMessage = message.toLowerCase();
-
-            if (lowerMessage.includes('菜系')) {
-                return showCuisineRanking();
-            } else if (lowerMessage.includes('餐廳')) {
-                return showRestaurantAnalysis();
-            } else if (lowerMessage.includes('菜色')) {
-                return showDishesAnalysis();
-            } else {
-                if (typeof foodTrends === 'undefined') {
-                    return '🍜 美食趨勢分析\n\n目前無法載入美食數據，請稍後再試。';
-                }
-
-                return `🍜 美食趨勢分析\n\n目前資料庫包含：\n• ${foodTrends.cuisines.length} 種熱門菜系\n• ${foodTrends.food_types.length} 種餐廳類型\n• ${foodTrends.total_articles} 篇美食文章\n\n請問您想了解什麼？`;
-            }
-        }
-
-        // 顯示學校排名
-        function showSchoolRanking() {
-            if (typeof gradTrends === 'undefined' || !gradTrends.schools) {
-                return '研究所數據暫不可用';
-            }
-
-            const topSchools = gradTrends.schools.slice(0, 5);
-            let response = '🏫 學校熱門排名 TOP 5：\n\n';
-
-            topSchools.forEach((school, index) => {
-                const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-                response += `${medals[index]} ${school.name} - ${school.count} 次提及\n`;
-            });
-
-            updateChart('school');
-            return response;
-        }
-
-        // 顯示科系分析
-        function showDepartmentAnalysis() {
-            if (typeof gradTrends === 'undefined' || !gradTrends.departments) {
-                return '研究所數據暫不可用';
-            }
-
-            const topDepartments = gradTrends.departments.slice(0, 5);
-            let response = '📚 熱門科系分析 TOP 5：\n\n';
-
-            topDepartments.forEach((dept, index) => {
-                response += `${index + 1}. ${dept.name} - ${dept.count} 次提及\n`;
-            });
-
-            updateChart('department');
-            return response;
-        }
-
-        // 顯示話題分析
-        function showTopicAnalysis() {
-            if (typeof gradTrends === 'undefined' || !gradTrends.topics) {
-                return '研究所數據暫不可用';
-            }
-
-            updateChart('topic');
-            return '📊 話題分布分析已更新在右側圖表中！\n主要討論話題包括：考試準備、研究所生活、就業前景等。';
-        }
-
-        // 顯示菜系排名
-        function showCuisineRanking() {
-            if (typeof foodTrends === 'undefined' || !foodTrends.cuisines) {
-                return '美食數據暫不可用';
-            }
-
-            const topCuisines = foodTrends.cuisines.slice(0, 5);
-            let response = '🍽️ 熱門菜系排名 TOP 5：\n\n';
-
-            topCuisines.forEach((cuisine, index) => {
-                const medals = ['🥇', '🥈', '🥉', '4️⃣', '5️⃣'];
-                response += `${medals[index]} ${cuisine.name} - ${cuisine.count} 次提及\n`;
-            });
-
-            updateChart('cuisine');
-            return response;
-        }
-
-        // 顯示餐廳分析
-        function showRestaurantAnalysis() {
-            if (typeof foodTrends === 'undefined' || !foodTrends.food_types) {
-                return '美食數據暫不可用';
-            }
-
-            updateChart('restaurant');
-            return '🏪 餐廳類型分析已更新在右側圖表中！\n包含各種餐廳類型的熱度分布。';
-        }
-
-        // 顯示菜色分析
-        function showDishesAnalysis() {
-            if (typeof foodTrends === 'undefined' || !foodTrends.dishes) {
-                return '美食數據暫不可用';
-            }
-
-            updateChart('dishes');
-            return '🍴 熱門菜色分析已更新在右側圖表中！\n顯示最受歡迎的菜色種類。';
-        }
-
-        // 更新圖表
-        function updateChart(type) {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-
-            if (currentChart) {
-                currentChart.destroy();
-            }
-
-            let chartData = {};
-
-            switch (type) {
-                case 'school':
-                    chartData = createSchoolChartData();
-                    break;
-                case 'department':
-                    chartData = createDepartmentChartData();
-                    break;
-                case 'topic':
-                    chartData = createTopicChartData();
-                    break;
-                case 'cuisine':
-                    chartData = createCuisineChartData();
-                    break;
-                case 'restaurant':
-                    chartData = createRestaurantChartData();
-                    break;
-                case 'dishes':
-                    chartData = createDishesChartData();
-                    break;
-                case 'spot':
-                    chartData = createSpotChartData();
-                    break;
-                case 'spot_type':
-                    chartData = createSpotTypeChartData();
-                    break;
-                case 'area':
-                    chartData = createAreaChartData();
-                    break;
-                default:
-                    chartData = createWelcomeChartData();
-            }
-
-            currentChart = new Chart(ctx, chartData);
-        }
-
-        // 創建學校圖表數據
-        function createSchoolChartData() {
-            const schools = (typeof gradTrends !== 'undefined' && gradTrends.schools)
-                ? gradTrends.schools.slice(0, 8)
-                : [
-                    { name: '台大', count: 120 },
-                    { name: '清大', count: 95 },
-                    { name: '交大', count: 90 },
-                    { name: '成大', count: 85 },
-                    { name: '政大', count: 75 },
-                    { name: '師大', count: 65 },
-                    { name: '中央', count: 60 },
-                    { name: '中山', count: 55 }
-                ];
-
-            return {
-                type: 'bar',
-                data: {
-                    labels: schools.map(s => s.name),
-                    datasets: [{
-                        label: '討論熱度',
-                        data: schools.map(s => s.count),
-                        backgroundColor: 'rgba(0, 242, 254, 0.8)',
-                        borderColor: '#00f2fe',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '學校討論熱度排行',
-                            color: '#e2e8f0'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        // 創建菜系圖表數據
-        function createCuisineChartData() {
-            const cuisines = (typeof foodTrends !== 'undefined' && foodTrends.cuisines)
-                ? foodTrends.cuisines.slice(0, 8)
-                : [
-                    { name: '中式', count: 150 },
-                    { name: '日式', count: 130 },
-                    { name: '韓式', count: 110 },
-                    { name: '美式', count: 90 },
-                    { name: '義式', count: 85 },
-                    { name: '泰式', count: 70 },
-                    { name: '法式', count: 60 },
-                    { name: '台式', count: 200 }
-                ];
-
-            return {
-                type: 'doughnut',
-                data: {
-                    labels: cuisines.map(c => c.name),
-                    datasets: [{
-                        data: cuisines.map(c => c.count),
-                        backgroundColor: [
-                            'rgba(0, 242, 254, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(199, 0, 255, 0.8)',
-                            'rgba(255, 64, 129, 0.8)',
-                            'rgba(0, 255, 136, 0.8)',
-                            'rgba(255, 221, 0, 0.8)',
-                            'rgba(255, 119, 0, 0.8)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '菜系熱度分布',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        // 創建景點圖表數據
-        function createSpotChartData() {
-            const spots = (typeof spotTrends !== 'undefined' && spotTrends.spots)
-                ? spotTrends.spots.slice(0, 8)
-                : [
-                    { name: '台北101', count: 150 },
-                    { name: '九份老街', count: 130 },
-                    { name: '日月潭', count: 120 },
-                    { name: '阿里山', count: 110 },
-                    { name: '墾丁', count: 100 },
-                    { name: '太魯閣', count: 95 },
-                    { name: '故宮', count: 90 },
-                    { name: '西門町', count: 85 }
-                ];
-
-            return {
-                type: 'bar',
-                data: {
-                    labels: spots.map(s => s.name),
-                    datasets: [{
-                        label: '討論熱度',
-                        data: spots.map(s => s.count),
-                        backgroundColor: 'rgba(0, 255, 136, 0.8)',
-                        borderColor: '#00ff88',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '景點討論熱度排行',
-                            color: '#e2e8f0'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8',
-                                maxRotation: 45
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        // 創建景點類型圖表數據
-        function createSpotTypeChartData() {
-            const spotTypes = (typeof spotTrends !== 'undefined' && spotTrends.spot_types)
-                ? spotTrends.spot_types
-                : [
-                    { name: '自然景觀', count: 450 },
-                    { name: '城市地標', count: 380 },
-                    { name: '文化古蹟', count: 320 },
-                    { name: '主題樂園', count: 280 },
-                    { name: '購物商圈', count: 250 }
-                ];
-
-            return {
-                type: 'pie',
-                data: {
-                    labels: spotTypes.map(t => t.name),
-                    datasets: [{
-                        data: spotTypes.map(t => t.count),
-                        backgroundColor: [
-                            'rgba(0, 255, 136, 0.8)',
-                            'rgba(0, 242, 254, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(199, 0, 255, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '景點類型分布',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        // 創建地區分布圖表數據
-        function createAreaChartData() {
-            const areas = (typeof spotTrends !== 'undefined' && spotTrends.areas)
-                ? spotTrends.areas
-                : [
-                    { name: '台北', count: 350 },
-                    { name: '新北', count: 300 },
-                    { name: '台中', count: 280 },
-                    { name: '高雄', count: 220 },
-                    { name: '花蓮', count: 180 }
-                ];
-
-            return {
-                type: 'doughnut',
-                data: {
-                    labels: areas.map(a => a.name),
-                    datasets: [{
-                        data: areas.map(a => a.count),
-                        backgroundColor: [
-                            'rgba(0, 255, 136, 0.8)',
-                            'rgba(0, 242, 254, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(199, 0, 255, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '地區景點分布',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        // 創建其他圖表數據的函數（部門、話題、餐廳、菜色）
-        function createDepartmentChartData() {
-            const departments = (typeof gradTrends !== 'undefined' && gradTrends.departments)
-                ? gradTrends.departments.slice(0, 6)
-                : [
-                    { name: '資工', count: 120 },
-                    { name: '電機', count: 110 },
-                    { name: '企管', count: 95 },
-                    { name: '法律', count: 85 },
-                    { name: '醫學', count: 80 },
-                    { name: '設計', count: 75 }
-                ];
-
-            return {
-                type: 'bar',
-                data: {
-                    labels: departments.map(d => d.name),
-                    datasets: [{
-                        label: '討論次數',
-                        data: departments.map(d => d.count),
-                        backgroundColor: 'rgba(79, 172, 254, 0.8)',
-                        borderColor: '#4facfe',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '科系討論熱度',
-                            color: '#e2e8f0'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        function createTopicChartData() {
-            const topics = (typeof gradTrends !== 'undefined' && gradTrends.topics)
-                ? gradTrends.topics
-                : [
-                    { name: '考試準備', count: 150 },
-                    { name: '研究所生活', count: 120 },
-                    { name: '就業前景', count: 100 },
-                    { name: '研究領域', count: 80 }
-                ];
-
-            return {
-                type: 'pie',
-                data: {
-                    labels: topics.map(t => t.name),
-                    datasets: [{
-                        data: topics.map(t => t.count),
-                        backgroundColor: [
-                            'rgba(0, 242, 254, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(102, 126, 234, 0.8)',
-                            'rgba(199, 0, 255, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '話題分布',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        function createRestaurantChartData() {
-            const restaurants = (typeof foodTrends !== 'undefined' && foodTrends.food_types)
-                ? foodTrends.food_types.slice(0, 6)
-                : [
-                    { name: '速食', count: 120 },
-                    { name: '小吃', count: 150 },
-                    { name: '餐廳', count: 100 },
-                    { name: '咖啡廳', count: 90 },
-                    { name: '夜市', count: 110 },
-                    { name: '早餐店', count: 95 }
-                ];
-
-            return {
-                type: 'bar',
-                data: {
-                    labels: restaurants.map(r => r.name),
-                    datasets: [{
-                        label: '提及次數',
-                        data: restaurants.map(r => r.count),
-                        backgroundColor: 'rgba(102, 126, 234, 0.8)',
-                        borderColor: '#667eea',
-                        borderWidth: 2,
-                        borderRadius: 8
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '餐廳類型熱度',
-                            color: '#e2e8f0'
-                        }
-                    },
-                    scales: {
-                        y: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                color: 'rgba(255, 255, 255, 0.1)'
-                            },
-                            ticks: {
-                                color: '#94a3b8'
-                            }
-                        }
-                    }
-                }
-            };
-        }
-
-        function createDishesChartData() {
-            const dishes = (typeof foodTrends !== 'undefined' && foodTrends.dishes)
-                ? foodTrends.dishes.slice(0, 6)
-                : [
-                    { name: '牛肉麵', count: 120 },
-                    { name: '滷肉飯', count: 150 },
-                    { name: '雞排', count: 110 },
-                    { name: '珍珠奶茶', count: 130 },
-                    { name: '小籠包', count: 90 },
-                    { name: '臭豆腐', count: 80 }
-                ];
-
-            return {
-                type: 'pie',
-                data: {
-                    labels: dishes.map(d => d.name),
-                    datasets: [{
-                        data: dishes.map(d => d.count),
-                        backgroundColor: [
-                            'rgba(255, 64, 129, 0.8)',
-                            'rgba(0, 255, 136, 0.8)',
-                            'rgba(255, 221, 0, 0.8)',
-                            'rgba(255, 119, 0, 0.8)',
-                            'rgba(199, 0, 255, 0.8)',
-                            'rgba(0, 242, 254, 0.8)'
-                        ]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'right',
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '熱門菜色分布',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        function createWelcomeChartData() {
-            const gradArticles = (typeof gradTrends !== 'undefined' && gradTrends.total_articles)
-                ? gradTrends.total_articles
-                : 500;
-            const foodArticles = (typeof foodTrends !== 'undefined' && foodTrends.total_articles)
-                ? foodTrends.total_articles
-                : 450;
-            const spotArticles = (typeof spotTrends !== 'undefined' && spotTrends.total_articles)
-                ? spotTrends.total_articles
-                : 300;
-
-            return {
-                type: 'doughnut',
-                data: {
-                    labels: ['研究所數據', '美食分析', '景點分析'],
-                    datasets: [{
-                        data: [gradArticles, foodArticles, spotArticles],
-                        backgroundColor: [
-                            'rgba(0, 242, 254, 0.8)',
-                            'rgba(79, 172, 254, 0.8)',
-                            'rgba(0, 255, 136, 0.8)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: '#e2e8f0'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: '數據分布概覽',
-                            color: '#e2e8f0'
-                        }
-                    }
-                }
-            };
-        }
-
-        // 更新統計數據
-        function updateStats() {
-            document.getElementById('totalSchools').textContent =
-                (typeof gradTrends !== 'undefined' && gradTrends.schools) ? gradTrends.schools.length : 8;
-            document.getElementById('totalCuisines').textContent =
-                (typeof foodTrends !== 'undefined' && foodTrends.cuisines) ? foodTrends.cuisines.length : 8;
-
-            const gradArticles = (typeof gradTrends !== 'undefined' && gradTrends.total_articles)
-                ? gradTrends.total_articles
-                : 500;
-            const foodArticles = (typeof foodTrends !== 'undefined' && foodTrends.total_articles)
-                ? foodTrends.total_articles
-                : 450;
-            const spotArticles = (typeof spotTrends !== 'undefined' && spotTrends.total_articles)
-                ? spotTrends.total_articles
-                : 300;
-
-            document.getElementById('totalArticles').textContent = gradArticles + foodArticles + spotArticles;
-            document.getElementById('totalDepartments').textContent =
-                (typeof gradTrends !== 'undefined' && gradTrends.departments) ? gradTrends.departments.length : 6;
-        }
-
-        // 初始化頁面
-        function initializePage() {
-            console.log('初始化頁面...');
-
-            // 檢查數據是否加載完成
-            console.log('gradTrends:', typeof gradTrends !== 'undefined' ? '已加載' : '未加載');
-            console.log('foodTrends:', typeof foodTrends !== 'undefined' ? '已加載' : '未加載');
-            console.log('spotTrends:', typeof spotTrends !== 'undefined' ? '已加載' : '未加載');
-
-            // 如果 spotTrends 未加載，顯示錯誤訊息
-            if (typeof spotTrends === 'undefined') {
-                console.error('spotTrends 未加載，請檢查 data.js 檔案');
-                showNotification('旅遊數據載入失敗，請檢查 data.js 檔案');
-
-                // 創建一個空的 spotTrends 避免程式錯誤
-                window.spotTrends = {
-                    spots: [],
-                    spot_types: [],
-                    areas: [],
-                    total_articles: 0
-                };
-            } else {
-                console.log('旅遊數據成功載入:', spotTrends);
-                showNotification('系統初始化完成！旅遊數據已載入');
-            }
-
-            // 更新統計數據
-            updateStats();
-
-            // 初始化歡迎圖表
-            updateChart('welcome');
-        }
-
-        // 頁面加載完成後初始化
-        window.addEventListener('DOMContentLoaded', initializePage);
     </script>
 </body>
-
 </html>
