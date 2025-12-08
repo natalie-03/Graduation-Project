@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>考試版數據分析平台</title>
+    <title>考試版數據分析平台 - Dcard心得分享</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
@@ -21,6 +21,8 @@
             --text-secondary: #8a9bb8;
             --grid-color: rgba(10, 140, 255, 0.1);
             --neon-glow: 0 0 15px rgba(14, 240, 255, 0.7);
+            --dcard-blue: #0066cc;
+            --dcard-purple: #8a2be2;
         }
 
         body {
@@ -151,58 +153,6 @@
             border-right-color: transparent;
         }
 
-        .preparation-card {
-            background: linear-gradient(135deg, rgba(14, 240, 255, 0.05), rgba(10, 140, 255, 0.05));
-            border: 1px solid rgba(14, 240, 255, 0.2);
-            border-radius: 10px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-        
-        .preparation-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: var(--neon-glow), 0 5px 15px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, rgba(14, 240, 255, 0.1), rgba(10, 140, 255, 0.1));
-        }
-        
-        .preparation-icon-box {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            background: rgba(14, 240, 255, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(14, 240, 255, 0.3);
-        }
-        
-        .preparation-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 0.5rem;
-        }
-
-        .preparation-title {
-            color: white;
-            font-weight: 600;
-            margin-bottom: 0;
-            font-size: 1.1rem;
-        }
-        
-        .preparation-desc {
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            min-height: 40px;
-        }
-
         .btn-prep-action {
             display: block;
             background: rgba(14, 240, 255, 0.1);
@@ -258,13 +208,6 @@
             border-color: transparent;
             box-shadow: var(--neon-glow);
         }
-        
-        /* 調整卡片網格間距 */
-        .preparation-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
 
         /* 返回按鈕樣式調整 */
         .navbar-tech .btn-tech {
@@ -296,645 +239,129 @@
             background: linear-gradient(to bottom, var(--secondary), var(--accent));
         }
 
-        /* 響應式調整 */
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-            
-            .category-filter-container {
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- 背景元素 -->
-    <div class="cyber-grid"></div>
-    
-    <nav class="navbar navbar-expand-lg navbar-tech">
-        <div class="container">
-            <a href="index.html" class="btn-tech btn-sm text-decoration-none">
-                <i class="fas fa-arrow-left me-1"></i>返回首頁
-            </a>
-        </div>
-    </nav>
-
-    <div class="container mt-4">
-        <div class="text-center">
-            <h1 class="page-title">考試版數據分析平台</h1>
-            <p class="text-secondary mb-4">
-                利用大數據分析考題趨勢，協助你制定最高效的讀書計畫
-            </p>
-        </div>
-
-        <div class="row">
-            <div class="col-lg-8">
-                <div class="tech-card p-4 mb-4">
-                    <h4 class="mb-4 text-white"><i class="fas fa-cloud me-2"></i>考試熱門話題文字雲</h4>
-                    <div class="wordcloud-container">
-                        <canvas id="wordCloud"></canvas>
-                    </div>
-                    <div class="text-center mt-3">
-                        <button class="btn-tech btn-sm" id="refreshWordCloud">
-                            <i class="fas fa-sync-alt me-2"></i>重新生成文字雲
-                        </button>
-                    </div>
-                </div>
-
-                <div class="tech-card p-4 mb-4">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="text-white m-0"><i class="fas fa-graduation-cap me-2"></i>考試準備區</h4>
-                    </div>
-
-                    <div class="category-filter-container" id="categoryFilters"></div>
-
-                    <div id="preparationContainer" class="row g-3">
-                        <div class="text-center py-4 w-100">
-                            <div class="spinner-border text-primary mb-2"></div>
-                            <p class="text-secondary">載入考試準備資料中...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-lg-4">
-                <div class="tech-card p-4 mb-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-trophy me-2"></i>熱門考試類型排名</h5>
-                    <div id="liveRanking">
-                        <div class="text-center py-4">
-                            <div class="spinner-border text-primary mb-2"></div>
-                            <p class="text-secondary">載入考試排名數據中...</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tech-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題</h5>
-                    <div id="hotTags" class="d-flex flex-wrap">
-                        <div class="text-center py-3 w-100">
-                            <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
-                            <small class="text-secondary">載入中...</small>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    
-    <script src="./js/try.js"></script>
-    <script src="./js/c.js"></script>
-
-    <script>
-        // 考試準備區分類映射
-        const EXAM_CATEGORIES = {
-            'all': { label: '全部顯示', types: [] },
-            'academic': { 
-                label: '升學/學術', 
-                types: ['研究所', '轉學考', '學測', '統測', '會考']
-            },
-            'language': { 
-                label: '語言檢定', 
-                types: ['多益', '托福', '雅思']
-            },
-            'career': { 
-                label: '公職/就業', 
-                types: ['公職', '國考', '教師甄試', '律師考試']
-            },
-            'other': { 
-                label: '證照/其他', 
-                types: ['證照', '其他']
-            }
-        };
-
-        // 渲染考試準備項目
-        function renderPreparationItems(data) {
-            const container = document.getElementById('preparationContainer');
-            
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-search mb-3" style="font-size: 2rem; color: var(--primary);"></i>
-                        <p class="text-secondary">此分類目前沒有相關資料</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.style.opacity = '0';
-            
-            setTimeout(() => {
-                container.innerHTML = data.map((item) => `
-                    <div class="col-md-6 col-xl-4">
-                        <div class="preparation-card">
-                            <div class="preparation-header">
-                                <div class="preparation-icon-box">
-                                    <i class="${item.icon || 'fas fa-book'}"></i>
-                                </div>
-                                <div>
-                                    <h6 class="preparation-title">${item.title}</h6>
-                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50" style="font-size: 0.7rem;">${item.exam_type || '一般'}</span>
-                                </div>
-                            </div>
-                            <p class="preparation-desc">
-                                ${item.description.length > 45 ? item.description.substring(0, 45) + '...' : item.description}
-                            </p>
-                            <a href="${item.link || '#'}" class="btn-prep-action text-decoration-none text-center">
-                                前往閱讀  <i class="fas fa-arrow-right ms-1 small"></i>
-                            </a>
-                        </div>
-                    </div>
-                `).join('');
-                
-                container.style.transition = 'opacity 0.3s ease';
-                container.style.opacity = '1';
-            }, 150);
-        }
-
-        // 處理分類過濾
-        function filterPreparation(categoryKey, event) {
-            const allData = window.cExamPreparationData;
-            
-            document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-
-            const targetTypes = EXAM_CATEGORIES[categoryKey].types;
-            let filteredData;
-            
-            if (categoryKey === 'all') {
-                filteredData = allData;
-            } else {
-                filteredData = allData.filter(item => targetTypes.includes(item.exam_type));
-            }
-
-            renderPreparationItems(filteredData);
-        }
-
-        // 初始化考試準備區
-        function initializeExamPreparation() {
-            const container = document.getElementById('preparationContainer');
-            const filterContainer = document.getElementById('categoryFilters');
-            
-            if (typeof window.cExamPreparationData === 'undefined' || !Array.isArray(window.cExamPreparationData)) {
-                container.innerHTML = `
-                    <div class="col-12 text-center py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                        <p class="text-warning mb-1">考試準備資料載入失敗</p>
-                        <small class="text-secondary">請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
-                    </div>
-                `;
-                filterContainer.innerHTML = '';
-                return;
-            }
-
-            const allData = window.cExamPreparationData;
-            const categories = Object.keys(EXAM_CATEGORIES);
-            
-            filterContainer.innerHTML = categories.map(key => `
-                <button class="category-btn ${key === 'all' ? 'active' : ''}" 
-                        onclick="filterPreparation('${key}', event)">
-                    ${EXAM_CATEGORIES[key].label}
-                </button>
-            `).join('');
-
-            renderPreparationItems(allData);
-            window.filterPreparation = filterPreparation;
-        }
-
-        // 初始化文字雲
-        function createWordCloud() {
-            let wordCloudData = [];
-            
-            if (typeof window.tryWordCloudData !== 'undefined' && Array.isArray(window.tryWordCloudData)) {
-                wordCloudData = window.tryWordCloudData.map(item => [item.name, item.count]);
-            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                wordCloudData = window.tryRankingData.map(item => [item.name, item.count]);
-            } else {
-                const canvas = document.getElementById('wordCloud');
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = '#0ef0ff';
-                ctx.font = '16px Segoe UI';
-                ctx.textAlign = 'center';
-                ctx.fillText('無可用資料，請確認 try.js 是否正確載入', canvas.width/2, canvas.height/2);
-                return;
-            }
-
-            const canvas = document.getElementById('wordCloud');
-            if (!canvas) return;
-
-            const container = canvas.parentElement;
-            canvas.width = container.clientWidth;
-            canvas.height = container.clientHeight;
-
-            if (typeof WordCloud === 'function') {
-                canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-                
-                WordCloud(canvas, {
-                    list: wordCloudData,
-                    gridSize: 10,
-                    weightFactor: 1.5,
-                    fontFamily: 'Segoe UI, sans-serif',
-                    color: function () {
-                        const colors = ['#0ef0ff', '#0a8cff', '#9d4edd', '#00ffcc'];
-                        return colors[Math.floor(Math.random() * colors.length)];
-                    },
-                    backgroundColor: 'transparent',
-                    rotateRatio: 0.5,
-                    rotationSteps: 2,
-                    shape: 'circle'
-                });
-            }
-        }
-
-        // 初始化排名
-        function initializeLiveRanking() {
-            const container = document.getElementById('liveRanking');
-            let sourceData = [];
-
-            if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                sourceData = window.tryRankingData;
-            } else {
-                container.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                        <p class="text-warning mb-1">外部資料載入失敗</p>
-                        <small class="text-secondary">請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
-                    </div>
-                `;
-                return;
-            }
-
-            const sortedExams = [...sourceData].sort((a, b) => b.count - a.count);
-
-            container.innerHTML = sortedExams.map((exam, index) => `
-                <div class="ranking-item d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="position-relative me-2">
-                            <span class="badge ${index < 3 ? 'bg-primary' : 'bg-secondary'} bg-opacity-25 ${index < 3 ? 'text-primary' : 'text-secondary'} rounded-circle d-flex align-items-center justify-content-center" 
-                                  style="width: 28px; height: 28px; font-size: 0.8rem;">
-                                ${index + 1}
-                            </span>
-                        </div>
-                        <span class="text-white">${exam.name}</span>
-                    </div>
-                    <span class="text-primary fw-bold">${exam.count}</span>
-                </div>
-            `).join('');
-        }
-
-        // 初始化熱門標籤
-        function initializeHotTags() {
-            const container = document.getElementById('hotTags');
-            let tags = [];
-            
-            if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
-                tags = window.tryHotTagsData;
-            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                tags = window.tryRankingData.slice(0, 10).map(item => item.name);
-            } else {
-                container.innerHTML = `
-                    <div class="text-warning small">
-                        <i class="fas fa-exclamation-circle me-1"></i> 標籤資料載入失敗
-                    </div>
-                `;
-                return;
-            }
-            
-            container.innerHTML = tags.map(tag => 
-                `<span class="tech-tag">#${tag}</span>`
-            ).join('');
-        }
-
-        // 頁面初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeExamPreparation();
-            
-            setTimeout(() => {
-                createWordCloud();
-                initializeLiveRanking();
-                initializeHotTags();
-            }, 100);
-
-            document.getElementById('refreshWordCloud').addEventListener('click', function() {
-                this.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>生成中...';
-                this.disabled = true;
-                
-                setTimeout(() => {
-                    createWordCloud();
-                    this.innerHTML = '<i class="fas fa-sync-alt me-2"></i>重新生成文字雲';
-                    this.disabled = false;
-                }, 500);
-            });
-        });
-
-        // 視窗大小變化時重新生成文字雲
-        window.addEventListener('resize', () => {
-            clearTimeout(window.resizeTimer);
-            window.resizeTimer = setTimeout(createWordCloud, 200);
-        });
-    </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>考試版數據分析平台</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/wordcloud@1.2.2/src/wordcloud2.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    
-    <style>
-        :root {
-            --primary: #0ef0ff;
-            --secondary: #0a8cff;
-            --accent: #9d4edd;
-            --dark: #050510;
-            --darker: #000000;
-            --light: #0f111a;
-            --text: #e8f0ff;
-            --text-secondary: #8a9bb8;
-            --grid-color: rgba(10, 140, 255, 0.1);
-            --neon-glow: 0 0 15px rgba(14, 240, 255, 0.7);
-        }
-
-        body {
-            background: radial-gradient(ellipse at center, #050510 0%, #000000 100%);
-            color: var(--text);
-            font-family: 'Segoe UI', sans-serif;
-            min-height: 100vh;
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* 黑色科技感背景效果 */
-        .cyber-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
+        /* Dcard文章卡片樣式 */
+        .dcard-article-card {
+            transition: all 0.3s ease;
             height: 100%;
-            z-index: -2;
-            background-image: 
-                linear-gradient(rgba(10, 140, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(10, 140, 255, 0.05) 1px, transparent 1px);
-            background-size: 50px 50px;
-            opacity: 0.4;
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            background: linear-gradient(135deg, rgba(15, 17, 26, 0.9), rgba(10, 11, 20, 0.95));
         }
 
-        .navbar-tech {
-            background: rgba(5, 5, 16, 0.95);
-            border-bottom: 1px solid rgba(14, 240, 255, 0.4);
+        .dcard-article-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 10px 25px rgba(0, 102, 204, 0.3), 0 5px 15px rgba(0, 0, 0, 0.5);
+            border-color: var(--dcard-blue);
+        }
+
+        .dcard-header {
+            background: linear-gradient(135deg, rgba(0, 102, 204, 0.15), rgba(138, 43, 226, 0.1));
+            border-bottom: 1px solid rgba(0, 102, 204, 0.2);
+        }
+
+        .dcard-badge {
+            background: rgba(0, 102, 204, 0.2);
+            border: 1px solid rgba(0, 102, 204, 0.4);
+            color: #66b3ff;
+        }
+
+        .dcard-content {
+            line-height: 1.6;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+        }
+
+        .dcard-stats {
+            color: var(--dcard-blue);
+            font-size: 0.85rem;
+        }
+
+        .dcard-tag {
+            background: rgba(0, 102, 204, 0.1);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: #66b3ff;
+        }
+
+        .dcard-tag:hover {
+            background: rgba(0, 102, 204, 0.2);
+            border-color: var(--dcard-blue);
+        }
+
+        .btn-dcard-action {
+            display: block;
+            background: rgba(0, 102, 204, 0.1);
+            border: 1px solid rgba(0, 102, 204, 0.3);
+            color: #66b3ff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            transition: all 0.3s ease;
+            text-align: center;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .btn-dcard-action:hover {
+            background: var(--dcard-blue);
+            color: white;
+            border-color: var(--dcard-blue);
+            box-shadow: 0 0 10px rgba(0, 102, 204, 0.5);
+        }
+
+        /* 分頁按鈕樣式 */
+        .page-btn {
+            background: rgba(14, 240, 255, 0.1);
+            border: 1px solid rgba(14, 240, 255, 0.3);
+            color: var(--primary);
+            width: 36px;
+            height: 36px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 2px;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* 搜尋框樣式 */
+        .search-box {
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 下拉選單樣式 */
+        .dropdown-menu-dark {
+            background: rgba(15, 17, 26, 0.95);
+            border: 1px solid rgba(14, 240, 255, 0.3);
             backdrop-filter: blur(10px);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
         }
 
-        .tech-card {
-            background: linear-gradient(135deg, rgba(15, 17, 26, 0.8), rgba(10, 11, 20, 0.9));
-            border: 1px solid rgba(14, 240, 255, 0.2);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tech-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: var(--neon-glow), 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        .btn-tech {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border: none;
-            color: #000;
-            padding: 10px 20px;
-            border-radius: 8px;
-            transition: all 0.3s ease;
-            font-weight: 600;
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .btn-tech:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--neon-glow);
-            color: #000;
-        }
-
-        .wordcloud-container {
-            width: 100%;
-            height: 400px;
-            background: rgba(10, 11, 20, 0.7);
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(14, 240, 255, 0.3);
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
-
-        .page-title {
-            background: linear-gradient(135deg, var(--primary), var(--secondary), var(--accent));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-            margin-bottom: 2rem;
-            text-align: center;
-            font-size: 2.8rem;
-            letter-spacing: 1px;
-        }
-
-        .ranking-item {
-            background: linear-gradient(135deg, rgba(15, 17, 26, 0.7), rgba(10, 11, 20, 0.8));
-            border: 1px solid rgba(14, 240, 255, 0.2);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 0.5rem;
-            transition: all 0.3s ease;
-        }
-        
-        .ranking-item:hover {
-            transform: translateX(5px);
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(14, 240, 255, 0.2);
-        }
-
-        .tech-tag {
-            background: rgba(14, 240, 255, 0.1);
-            border: 1px solid rgba(14, 240, 255, 0.4);
-            border-radius: 16px;
-            padding: 0.5rem 1rem;
-            margin: 0.25rem;
-            font-size: 0.8rem;
-            display: inline-block;
-            transition: all 0.3s ease;
-            color: #b8e6ff;
-        }
-
-        .tech-tag:hover {
-            background: rgba(14, 240, 255, 0.2);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 0 10px rgba(14, 240, 255, 0.3);
-        }
-        
-        .spinner-border {
-            border-color: currentColor;
-            border-right-color: transparent;
-        }
-
-        .preparation-card {
-            background: linear-gradient(135deg, rgba(14, 240, 255, 0.05), rgba(10, 140, 255, 0.05));
-            border: 1px solid rgba(14, 240, 255, 0.2);
-            border-radius: 10px;
-            padding: 1rem;
-            transition: all 0.3s ease;
-            height: 100%;
-        }
-        
-        .preparation-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--primary);
-            box-shadow: var(--neon-glow), 0 5px 15px rgba(0, 0, 0, 0.3);
-            background: linear-gradient(135deg, rgba(14, 240, 255, 0.1), rgba(10, 140, 255, 0.1));
-        }
-        
-        .preparation-icon-box {
-            font-size: 1.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            background: rgba(14, 240, 255, 0.1);
-            border-radius: 8px;
-            border: 1px solid rgba(14, 240, 255, 0.3);
-        }
-        
-        .preparation-header {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 0.5rem;
-        }
-
-        .preparation-title {
-            color: white;
-            font-weight: 600;
-            margin-bottom: 0;
-            font-size: 1.1rem;
-        }
-        
-        .preparation-desc {
+        .dropdown-item {
             color: var(--text-secondary);
-            font-size: 0.9rem;
-            margin-bottom: 1rem;
-            min-height: 40px;
         }
 
-        .btn-prep-action {
-            display: block;
+        .dropdown-item:hover {
             background: rgba(14, 240, 255, 0.1);
-            border: 1px solid rgba(14, 240, 255, 0.3);
-            color: var(--primary);
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            transition: all 0.3s ease;
-            text-align: center;
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .btn-prep-action:hover {
-            background: var(--primary);
-            color: #000;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px rgba(14, 240, 255, 0.5);
-        }
-
-        /* 分類過濾器樣式 */
-        .category-filter-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(14, 240, 255, 0.2);
-        }
-
-        .category-btn {
-            background: rgba(15, 17, 26, 0.6);
-            border: 1px solid rgba(14, 240, 255, 0.3);
-            color: #8a9bb8;
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-weight: 500;
-        }
-
-        .category-btn:hover {
-            color: white;
-            border-color: var(--primary);
-            background: rgba(14, 240, 255, 0.1);
-        }
-
-        .category-btn.active {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: #000;
-            border-color: transparent;
-            box-shadow: var(--neon-glow);
-        }
-        
-        /* 調整卡片網格間距 */
-        .preparation-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-
-        /* 返回按鈕樣式調整 */
-        .navbar-tech .btn-tech {
-            background: rgba(14, 240, 255, 0.1);
-            border: 1px solid rgba(14, 240, 255, 0.3);
             color: var(--primary);
         }
 
-        .navbar-tech .btn-tech:hover {
-            background: var(--primary);
-            color: #000;
-        }
-
-        /* 滑動條樣式 */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(10, 11, 20, 0.5);
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: linear-gradient(to bottom, var(--primary), var(--secondary));
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: linear-gradient(to bottom, var(--secondary), var(--accent));
+        /* Dcard標誌 */
+        .dcard-icon {
+            color: var(--dcard-blue);
+            margin-right: 5px;
         }
 
         /* 響應式調整 */
@@ -965,7 +392,7 @@
         <div class="text-center">
             <h1 class="page-title">考試版數據分析平台</h1>
             <p class="text-secondary mb-4">
-                利用大數據分析考題趨勢，協助你制定最高效的讀書計畫
+                分析Dcard考試心得，掌握最新考試趨勢與準備技巧
             </p>
         </div>
 
@@ -985,15 +412,56 @@
 
                 <div class="tech-card p-4 mb-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="text-white m-0"><i class="fas fa-graduation-cap me-2"></i>考試準備區</h4>
+                        <h4 class="text-white m-0"><i class="fab fa-dcard dcard-icon"></i>Dcard考試心得專區</h4>
+                        <div class="d-flex align-items-center">
+                            <span class="text-secondary me-2 small" id="articleCount">0 篇心得</span>
+                            <div class="dropdown">
+                                <button class="btn-tech btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown">
+                                    <i class="fas fa-sort me-2"></i>排序
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark">
+                                    <li><a class="dropdown-item" href="#" onclick="sortArticles('date', 'desc')">最新心得</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sortArticles('date', 'asc')">最舊心得</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sortArticles('likes', 'desc')">最多愛心</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sortArticles('comments', 'desc')">最多留言</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="sortArticles('title', 'asc')">標題 A-Z</a></li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="category-filter-container" id="categoryFilters"></div>
+                    
+                    <div class="row mb-4 d-none" id="searchBox">
+                        <div class="col-12">
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-primary text-primary">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control bg-dark text-white border-primary" 
+                                       id="articleSearch" placeholder="搜尋考試心得...">
+                                <button class="btn btn-outline-primary" type="button" id="clearSearch">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div id="preparationContainer" class="row g-3">
+                    <div id="articlesContainer" class="row g-4">
                         <div class="text-center py-4 w-100">
                             <div class="spinner-border text-primary mb-2"></div>
-                            <p class="text-secondary">載入考試準備資料中...</p>
+                            <p class="text-secondary">載入Dcard考試心得中...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-4">
+                        <button class="btn-tech btn-sm" id="toggleSearch">
+                            <i class="fas fa-search me-2"></i>搜尋心得
+                        </button>
+                        <div>
+                            <span class="text-secondary me-2 small" id="pageInfo">第 1 頁，共 1 頁</span>
+                            <button class="page-btn" id="prevPage" disabled><i class="fas fa-chevron-left"></i></button>
+                            <button class="page-btn" id="nextPage" disabled><i class="fas fa-chevron-right"></i></button>
                         </div>
                     </div>
                 </div>
@@ -1010,143 +478,33 @@
                     </div>
                 </div>
 
-                <div class="tech-card p-4">
-                    <h5 class="mb-3 text-white"><i class="fas fa-tags me-2"></i>熱門考試話題</h5>
-                    <div id="hotTags" class="d-flex flex-wrap">
-                        <div class="text-center py-3 w-100">
-                            <div class="spinner-border spinner-border-sm text-primary mb-2"></div>
-                            <small class="text-secondary">載入中...</small>
-                        </div>
+                
+                    <div id="dcardForums" class="d-flex flex-wrap">
+                        
                     </div>
-                </div>
+               
+
+              
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- 外部資料檔案 -->
     <script src="./js/try.js"></script>
-    <script src="./js/c.js"></script>
+    <script src="./js/dcard_data.js"></script>
 
     <script>
-        // 考試準備區分類映射
-        const EXAM_CATEGORIES = {
-            'all': { label: '全部顯示', types: [] },
-            'academic': { 
-                label: '升學/學術', 
-                types: ['研究所', '轉學考', '學測', '統測', '會考']
-            },
-            'language': { 
-                label: '語言檢定', 
-                types: ['多益', '托福', '雅思']
-            },
-            'career': { 
-                label: '公職/就業', 
-                types: ['公職', '國考', '教師甄試', '律師考試']
-            },
-            'other': { 
-                label: '證照/其他', 
-                types: ['證照', '其他']
-            }
-        };
+        // Dcard考試心得資料結構
+        let dcardArticlesData = [];
+        let filteredArticles = [];
+        let currentPage = 1;
+        const articlesPerPage = 6;
+        let currentSort = { field: 'date', order: 'desc' };
+        let currentSearch = '';
 
-        // 渲染考試準備項目
-        function renderPreparationItems(data) {
-            const container = document.getElementById('preparationContainer');
-            
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="col-12 text-center py-5">
-                        <i class="fas fa-search mb-3" style="font-size: 2rem; color: var(--primary);"></i>
-                        <p class="text-secondary">此分類目前沒有相關資料</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.style.opacity = '0';
-            
-            setTimeout(() => {
-                container.innerHTML = data.map((item) => `
-                    <div class="col-md-6 col-xl-4">
-                        <div class="preparation-card">
-                            <div class="preparation-header">
-                                <div class="preparation-icon-box">
-                                    <i class="${item.icon || 'fas fa-book'}"></i>
-                                </div>
-                                <div>
-                                    <h6 class="preparation-title">${item.title}</h6>
-                                    <span class="badge bg-primary bg-opacity-25 text-primary border border-primary border-opacity-50" style="font-size: 0.7rem;">${item.exam_type || '一般'}</span>
-                                </div>
-                            </div>
-                            <p class="preparation-desc">
-                                ${item.description.length > 45 ? item.description.substring(0, 45) + '...' : item.description}
-                            </p>
-                            <a href="${item.link || '#'}" class="btn-prep-action text-decoration-none text-center">
-                                前往閱讀  <i class="fas fa-arrow-right ms-1 small"></i>
-                            </a>
-                        </div>
-                    </div>
-                `).join('');
-                
-                container.style.transition = 'opacity 0.3s ease';
-                container.style.opacity = '1';
-            }, 150);
-        }
-
-        // 處理分類過濾
-        function filterPreparation(categoryKey, event) {
-            const allData = window.cExamPreparationData;
-            
-            document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => btn.classList.remove('active'));
-            if (event && event.target) {
-                event.target.classList.add('active');
-            }
-
-            const targetTypes = EXAM_CATEGORIES[categoryKey].types;
-            let filteredData;
-            
-            if (categoryKey === 'all') {
-                filteredData = allData;
-            } else {
-                filteredData = allData.filter(item => targetTypes.includes(item.exam_type));
-            }
-
-            renderPreparationItems(filteredData);
-        }
-
-        // 初始化考試準備區
-        function initializeExamPreparation() {
-            const container = document.getElementById('preparationContainer');
-            const filterContainer = document.getElementById('categoryFilters');
-            
-            if (typeof window.cExamPreparationData === 'undefined' || !Array.isArray(window.cExamPreparationData)) {
-                container.innerHTML = `
-                    <div class="col-12 text-center py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                        <p class="text-warning mb-1">考試準備資料載入失敗</p>
-                        <small class="text-secondary">請確認 **./js/c.js** 檔案存在且定義了 **window.cExamPreparationData** 陣列。</small>
-                    </div>
-                `;
-                filterContainer.innerHTML = '';
-                return;
-            }
-
-            const allData = window.cExamPreparationData;
-            const categories = Object.keys(EXAM_CATEGORIES);
-            
-            filterContainer.innerHTML = categories.map(key => `
-                <button class="category-btn ${key === 'all' ? 'active' : ''}" 
-                        onclick="filterPreparation('${key}', event)">
-                    ${EXAM_CATEGORIES[key].label}
-                </button>
-            `).join('');
-
-            renderPreparationItems(allData);
-            window.filterPreparation = filterPreparation;
-        }
-
-        // 初始化文字雲
+        // 文字雲函數 - 僅使用 try.js 資料
         function createWordCloud() {
             let wordCloudData = [];
             
@@ -1192,68 +550,365 @@
             }
         }
 
-        // 初始化排名
-        function initializeLiveRanking() {
-            const container = document.getElementById('liveRanking');
-            let sourceData = [];
 
-            if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                sourceData = window.tryRankingData;
+        // 顯示文字雲錯誤訊息
+        function showWordCloudError(canvas, message) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#ff6b6b';
+            ctx.font = '16px Segoe UI';
+            ctx.textAlign = 'center';
+            ctx.fillText(message, canvas.width/2, canvas.height/2 - 20);
+            ctx.fillStyle = '#8a9bb8';
+            ctx.font = '14px Segoe UI';
+            ctx.fillText('請檢查 ./js/try.js 檔案是否存在並正確匯出資料', canvas.width/2, canvas.height/2 + 10);
+        }
+
+        // 初始化Dcard心得專區
+        function initializeDcardArticles() {
+            // 檢查是否有Dcard心得資料
+            if (typeof window.dcardData !== 'undefined' && Array.isArray(window.dcardData) && window.dcardData.length > 0) {
+                dcardArticlesData = window.dcardData;
+                filteredArticles = [...dcardArticlesData];
+                
+                // 初始化分類篩選器
+                const filterContainer = document.getElementById('categoryFilters');
+                const examTypes = [...new Set(dcardArticlesData.map(article => article.exam_type))];
+                
+                filterContainer.innerHTML = `
+                    <button class="category-btn active" data-category="all" onclick="setCategoryFilter('all', event)">
+                        全部考試
+                    </button>
+                    ${examTypes.map(type => `
+                        <button class="category-btn" data-category="${type}" onclick="setCategoryFilter('${type}', event)">
+                            ${type}
+                        </button>
+                    `).join('')}
+                `;
+                
+                // 初始化搜尋功能
+                document.getElementById('articleSearch').addEventListener('input', function(e) {
+                    currentSearch = e.target.value;
+                    filterArticles();
+                });
+                
+                document.getElementById('clearSearch').addEventListener('click', function() {
+                    document.getElementById('articleSearch').value = '';
+                    currentSearch = '';
+                    filterArticles();
+                });
+                
+                document.getElementById('toggleSearch').addEventListener('click', function() {
+                    const searchBox = document.getElementById('searchBox');
+                    searchBox.classList.toggle('d-none');
+                });
+                
+                // 分頁功能
+                document.getElementById('prevPage').addEventListener('click', function() {
+                    if (currentPage > 1) {
+                        currentPage--;
+                        renderDcardArticles();
+                    }
+                });
+                
+                document.getElementById('nextPage').addEventListener('click', function() {
+                    const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+                    if (currentPage < totalPages) {
+                        currentPage++;
+                        renderDcardArticles();
+                    }
+                });
+                
+                // 初始化Dcard熱門考試版
+                initializeDcardForums();
+                
+                // 初始渲染
+                sortArticles('date', 'desc');
             } else {
+                document.getElementById('articlesContainer').innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fab fa-dcard fa-2x mb-2 dcard-icon"></i>
+                        <p class="text-warning mb-1">Dcard心得資料載入失敗</p>
+                        <small class="text-secondary">請確認已正確載入Dcard資料檔案</small>
+                    </div>
+                `;
+                document.getElementById('articleCount').textContent = '0 篇心得';
+            }
+        }
+
+        // 渲染Dcard文章列表
+        function renderDcardArticles() {
+            const container = document.getElementById('articlesContainer');
+            const articleCount = document.getElementById('articleCount');
+            const pageInfo = document.getElementById('pageInfo');
+            const prevBtn = document.getElementById('prevPage');
+            const nextBtn = document.getElementById('nextPage');
+            
+            // 計算分頁
+            const startIndex = (currentPage - 1) * articlesPerPage;
+            const endIndex = startIndex + articlesPerPage;
+            const pageArticles = filteredArticles.slice(startIndex, endIndex);
+            const totalPages = Math.ceil(filteredArticles.length / articlesPerPage);
+            
+            // 更新計數和分頁資訊
+            articleCount.textContent = `${filteredArticles.length} 篇心得`;
+            pageInfo.textContent = `第 ${currentPage} 頁，共 ${totalPages} 頁`;
+            
+            // 更新分頁按鈕狀態
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+            
+            // 渲染文章
+            if (pageArticles.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center py-4">
-                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
-                        <p class="text-warning mb-1">外部資料載入失敗</p>
-                        <small class="text-secondary">請確認 **./js/try.js** 檔案存在且定義了 **window.tryRankingData** 陣列。</small>
+                    <div class="col-12 text-center py-5">
+                        <i class="fab fa-dcard fa-2x mb-2 dcard-icon"></i>
+                        <p class="text-white mb-2">找不到相關考試心得</p>
+                        <p class="text-secondary">嘗試使用不同的關鍵字或篩選條件</p>
                     </div>
                 `;
                 return;
             }
-
-            const sortedExams = [...sourceData].sort((a, b) => b.count - a.count);
-
-            container.innerHTML = sortedExams.map((exam, index) => `
-                <div class="ranking-item d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center">
-                        <div class="position-relative me-2">
-                            <span class="badge ${index < 3 ? 'bg-primary' : 'bg-secondary'} bg-opacity-25 ${index < 3 ? 'text-primary' : 'text-secondary'} rounded-circle d-flex align-items-center justify-content-center" 
-                                  style="width: 28px; height: 28px; font-size: 0.8rem;">
-                                ${index + 1}
-                            </span>
+            
+            container.innerHTML = pageArticles.map(article => `
+                <div class="col-lg-6">
+                    <div class="dcard-article-card tech-card p-0 overflow-hidden h-100">
+          
+                        <div class="p-3">
+                            <div class="d-flex align-items-center mb-2">
+                                <div class="rounded-circle bg-primary bg-opacity-25 d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
+                                    <i class="fas fa-user text-primary small"></i>
+                                </div>
+                                <div>
+                                    <small class="text-secondary">${article.author || '匿名'}</small>
+                                    <small class="text-secondary d-block">${article.school || ''} ${article.department || ''}</small>
+                                </div>
+                            </div>
+                            <p class="dcard-content">${truncateText(article.content || article.summary || '', 120)}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-3">
+                                <div class="d-flex flex-wrap">
+                                    ${(article.tags || []).map(tag => `<span class="dcard-tag small me-1 mb-1">#${tag}</span>`).join('')}
+                                </div>
+                                <a href="${article.link || '#'}" class="btn-dcard-action" target="_blank">
+                                    查看原文 <i class="fas fa-external-link-alt ms-1"></i>
+                                </a>
+                            </div>
                         </div>
-                        <span class="text-white">${exam.name}</span>
                     </div>
-                    <span class="text-primary fw-bold">${exam.count}</span>
                 </div>
             `).join('');
         }
 
-        // 初始化熱門標籤
-        function initializeHotTags() {
-            const container = document.getElementById('hotTags');
-            let tags = [];
+        // 格式日期
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             
-            if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
-                tags = window.tryHotTagsData;
-            } else if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
-                tags = window.tryRankingData.slice(0, 10).map(item => item.name);
+            if (diffDays === 1) {
+                return '昨天';
+            } else if (diffDays < 7) {
+                return `${diffDays} 天前`;
+            } else {
+                return date.toLocaleDateString('zh-TW', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                });
+            }
+        }
+
+        // 截斷文字
+        function truncateText(text, maxLength) {
+            if (!text) return '無內容預覽';
+            if (text.length <= maxLength) return text;
+            return text.substring(0, maxLength) + '...';
+        }
+
+        // 篩選文章
+        function filterArticles() {
+            let result = dcardArticlesData;
+            
+            // 套用搜尋
+            if (currentSearch) {
+                const searchLower = currentSearch.toLowerCase();
+                result = result.filter(article => 
+                    article.title.toLowerCase().includes(searchLower) ||
+                    article.content.toLowerCase().includes(searchLower) ||
+                    (article.tags || []).some(tag => tag.toLowerCase().includes(searchLower)) ||
+                    article.exam_type.toLowerCase().includes(searchLower)
+                );
+            }
+            
+            // 套用分類篩選
+            const activeCategory = document.querySelector('#categoryFilters .category-btn.active');
+            if (activeCategory && activeCategory.dataset.category !== 'all') {
+                const category = activeCategory.dataset.category;
+                result = result.filter(article => article.exam_type === category);
+            }
+            
+            // 套用排序
+            result.sort((a, b) => {
+                let aVal = a[currentSort.field];
+                let bVal = b[currentSort.field];
+                
+                if (currentSort.field === 'date') {
+                    aVal = new Date(a.date);
+                    bVal = new Date(b.date);
+                }
+                
+                // 處理可能不存在的欄位
+                aVal = aVal || 0;
+                bVal = bVal || 0;
+                
+                if (currentSort.order === 'asc') {
+                    return aVal > bVal ? 1 : -1;
+                } else {
+                    return aVal < bVal ? 1 : -1;
+                }
+            });
+            
+            filteredArticles = result;
+            currentPage = 1; // 重置到第一頁
+            renderDcardArticles();
+        }
+
+        // 排序文章
+        function sortArticles(field, order) {
+            currentSort = { field, order };
+            filterArticles();
+            
+            // 更新下拉選單文字
+            const dropdownBtn = document.getElementById('sortDropdown');
+            const labels = {
+                'date_desc': '最新心得',
+                'date_asc': '最舊心得',
+                'likes_desc': '最多愛心',
+                'comments_desc': '最多留言',
+                'title_asc': '標題 A-Z'
+            };
+            dropdownBtn.innerHTML = `<i class="fas fa-sort me-2"></i>${labels[`${field}_${order}`] || '排序'}`;
+        }
+
+        // 分類篩選函數
+        function setCategoryFilter(category, event) {
+            document.querySelectorAll('#categoryFilters .category-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            filterArticles();
+        }
+
+        // 初始化Dcard熱門考試版
+        function initializeDcardForums() {
+            const container = document.getElementById('dcardForums');
+            
+            // 從資料中提取熱門考試版
+            const forums = {};
+            dcardArticlesData.forEach(article => {
+                const forum = article.forum || '考試版';
+                if (!forums[forum]) {
+                    forums[forum] = {
+                        name: forum,
+                        count: 1,
+                        examTypes: new Set([article.exam_type])
+                    };
+                } else {
+                    forums[forum].count++;
+                    forums[forum].examTypes.add(article.exam_type);
+                }
+            });
+            
+            // 轉換為陣列並排序
+            const forumList = Object.values(forums)
+                .map(forum => ({
+                    ...forum,
+                    examTypes: Array.from(forum.examTypes).slice(0, 3) // 只取前三種考試類型
+                }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 8); // 只取前8個
+            
+            // 渲染熱門考試版
+            container.innerHTML = forumList.map(forum => `
+                
+            `).join('');
+        }
+
+        // 初始化排行榜 - 僅使用 try.js 資料
+        function initializeLiveRanking() {
+            const container = document.getElementById('liveRanking');
+            
+            // 檢查 try.js 資料是否載入
+            if (typeof window.tryRankingData !== 'undefined' && Array.isArray(window.tryRankingData)) {
+                if (window.tryRankingData.length > 0) {
+                    container.innerHTML = window.tryRankingData.map((exam, index) => `
+                        <div class="ranking-item d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    <span class="badge ${index < 3 ? 'bg-primary' : 'bg-secondary'} bg-opacity-25 ${index < 3 ? 'text-primary' : 'text-secondary'} rounded-circle d-flex align-items-center justify-content-center" 
+                                          style="width: 28px; height: 28px; font-size: 0.8rem;">
+                                        ${index + 1}
+                                    </span>
+                                </div>
+                                <span class="text-white">${exam.name}</span>
+                            </div>
+                            <span class="text-primary fw-bold">${exam.count}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                            <p class="text-warning mb-1">排行榜資料載入失敗</p>
+                            <small class="text-secondary">請確認 **./js/try.js** 檔案存在</small>
+                        </div>
+                    `;
+                }
             } else {
                 container.innerHTML = `
-                    <div class="text-warning small">
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle fa-2x mb-2 text-warning"></i>
+                        <p class="text-warning mb-1">排行榜資料載入失敗</p>
+                        <small class="text-secondary">請確認 **./js/try.js** 檔案存在</small>
+                    </div>
+                `;
+            }
+        }
+
+        // 熱門標籤 - 僅使用 try.js 資料
+        function initializeHotTags() {
+            const container = document.getElementById('hotTags');
+            
+            // 檢查 try.js 資料是否載入
+            if (typeof window.tryHotTagsData !== 'undefined' && Array.isArray(window.tryHotTagsData)) {
+                if (window.tryHotTagsData.length > 0) {
+                    container.innerHTML = window.tryHotTagsData.map(tag => 
+                        `<span class="tech-tag">#${tag}</span>`
+                    ).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="text-warning small w-100 text-center">
+                            <i class="fas fa-exclamation-circle me-1"></i> 標籤資料載入失敗
+                        </div>
+                    `;
+                }
+            } else {
+                container.innerHTML = `
+                    <div class="text-warning small w-100 text-center">
                         <i class="fas fa-exclamation-circle me-1"></i> 標籤資料載入失敗
                     </div>
                 `;
-                return;
             }
-            
-            container.innerHTML = tags.map(tag => 
-                `<span class="tech-tag">#${tag}</span>`
-            ).join('');
         }
 
         // 頁面初始化
         document.addEventListener('DOMContentLoaded', function() {
-            initializeExamPreparation();
+            initializeDcardArticles();
             
             setTimeout(() => {
                 createWordCloud();
@@ -1274,7 +929,7 @@
         });
 
         // 視窗大小變化時重新生成文字雲
-        window.addEventListener('resize', () => {
+         window.addEventListener('resize', () => {
             clearTimeout(window.resizeTimer);
             window.resizeTimer = setTimeout(createWordCloud, 200);
         });
