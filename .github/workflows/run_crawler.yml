@@ -8,31 +8,23 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
-    
+
     permissions:
       contents: write
-      # 新增：需要 push 權限
-      pull-requests: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4  # 更新到最新版
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5  # 更新到最新版
+        uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install Chrome and ChromeDriver
+      - name: Install Chrome
         run: |
           sudo apt-get update
           sudo apt-get install -y google-chrome-stable
-          # 安裝對應版本的 ChromeDriver
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          wget -q --continue -P . "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%.*}/chromedriver_linux64.zip"
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/chromedriver
 
       - name: Install dependencies
         run: |
