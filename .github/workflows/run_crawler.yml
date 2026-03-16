@@ -28,7 +28,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install -r .github/requirements.txt
+          pip install -r .github/workflows/requirements.txt
 
       - name: Run Crawler
         run: python .github/scraper.py
