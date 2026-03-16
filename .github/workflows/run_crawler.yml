@@ -31,7 +31,7 @@ jobs:
           pip install -r .github/workflows/requirements.txt
 
       - name: Run Crawler
-        run: python .github/scraper.py
+        run: python .github/workflows/scraper.py
 
       - name: Commit and Push Data
         run: |
