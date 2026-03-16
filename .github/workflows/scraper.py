@@ -16,7 +16,7 @@ BOARDS = {
     "exam": "考試.csv"
 }
 
-TARGET_COUNT = 10000  # 目標爬取數量
+TARGET_COUNT = 100  # 目標爬取數量
 OUTPUT_DIR = "csv"    # 設定輸出的資料夾名稱
 BATCH_SIZE = 5        # 每幾篇存檔一次
 
@@ -34,7 +34,7 @@ def get_driver():
     options.add_argument("--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
 
     print("正在啟動 Headless Chrome...")
-    driver = uc.Chrome(options=options, version_main=None)
+    driver = uc.Chrome(options=options, version_main=145)
     return driver
 
 def crawl_board(driver, board, filename):
@@ -181,5 +181,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
